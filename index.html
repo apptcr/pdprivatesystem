@@ -6,16 +6,23 @@
   <title>หน้าโฮม</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      background-color: #f4f4f5; /* สีพื้นหลังสุภาพ */
-    }
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 0.85rem;
-      color: #6c757d;
-    }
-  </style>
+  body {
+    background-image: url('bg.jpg'); /* เปลี่ยน 'your-image.jpg' เป็นลิงก์หรือชื่อไฟล์ของคุณ */
+    background-size: cover; /* ปรับภาพให้เต็มจอแบบอัตโนมัติ */
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed; /* ภาพจะไม่เลื่อนตามหน้าจอ */
+    background-color: #f4f4f5; /* สีสำรองกรณีโหลดภาพไม่ได้ */
+  }
+
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.85rem;
+    color: #6c757d;
+  }
+</style>
+
 </head>
 <body class="min-h-screen flex items-center justify-center">
   <div class="text-center p-10 bg-white rounded-xl shadow-lg max-w-md w-full border border-gray-200">
