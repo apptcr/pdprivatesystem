@@ -1243,39 +1243,45 @@ const units = [
       link.click();
     }
     
-    // ตั้งค่าการกด Enter ให้เลื่อนลงในคอลัมน์เดียวกัน
-    function setupKeyEvents(container = document) {
-      const inputs = container.querySelectorAll('.form-input');
-      
-      inputs.forEach(input => {
-        input.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            
-            const currentCol = this.dataset.col;
-            const currentRow = this.dataset.row;
-            const currentIndex = parseInt(this.dataset.index);
-            
-            // หาอินพุตถัดไปในคอลัมน์เดียวกัน
-            let nextInput = document.querySelector(`.form-input[data-col="${currentCol}"][data-row="${currentRow}"][data-index="${currentIndex + 1}"]`);
-            
-            // ถ้าไม่มีแถวถัดไปในคอลัมน์นี้
-            if (!nextInput) {
-              // ไม่ต้องเพิ่มแถวอัตโนมัติแล้ว แม้จะเป็นคอลัมน์ Lot
-              
-              // หาแถวหลักถัดไป
-              const nextMainRow = parseInt(currentRow) + 1;
-              nextInput = document.querySelector(`.form-input[data-col="${currentCol}"][data-row="${nextMainRow}"][data-index="0"]`);
-              
-              // ถ้าไม่มีแถวหลักถัดไป จบการทำงาน
-              if (!nextInput) return;
+// ตั้งค่าการกด Enter ให้เลื่อนลงในคอลัมน์เดียวกัน โดยข้ามแถวที่ถูกซ่อน
+function setupKeyEvents(container = document) {
+  const inputs = container.querySelectorAll('.form-input');
+  
+  inputs.forEach(input => {
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+
+        const currentCol = this.dataset.col;
+        const currentRow = parseInt(this.dataset.row);
+        const currentIndex = parseInt(this.dataset.index);
+
+        // หาอินพุตถัดไปในแถวย่อย (ถ้ามี)
+        let nextInput = document.querySelector(
+          `.form-input[data-col="${currentCol}"][data-row="${currentRow}"][data-index="${currentIndex + 1}"]`
+        );
+
+        // ถ้าไม่มี ให้มองหาแถวหลักถัดไปที่มองเห็น
+        if (!nextInput) {
+          let nextRow = currentRow + 1;
+          while (true) {
+            const candidateRow = document.querySelector(`tr[data-main-row="${nextRow}"]`);
+            if (!candidateRow) break;
+            if (candidateRow.style.display === '' || candidateRow.style.display === 'table-row') {
+              nextInput = candidateRow.querySelector(`.form-input[data-col="${currentCol}"][data-index="0"]`);
+              if (nextInput) break;
             }
-            
-            nextInput.focus();
+            nextRow++;
           }
-        });
-      });
-    }
+        }
+
+        if (nextInput) {
+          nextInput.focus();
+        }
+      }
+    });
+  });
+}
     
     // ตั้งค่า keystroke events เมื่อหน้าเว็บโหลด
     document.addEventListener('DOMContentLoaded', function() {
