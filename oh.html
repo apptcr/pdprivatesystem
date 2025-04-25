@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>รหัสวัสดุสิ้นเปลืองโรงงาน-ฐาน 2 (แผนกผลิต)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Kanit', 'Sarabun', sans-serif;
+    }
+    
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    h1, h2 {
+      color: #1565c0;
+      text-align: center;
+    }
+    
+    h1 {
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+    
+    h2 {
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 15px;
+    }
+    
+    .row-selector {
+      background-color: #e3f2fd;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
+    .selector-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    
+    .selector-buttons button {
+      background-color: #1565c0;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      margin-right: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .selector-buttons button:hover {
+      background-color: #0d47a1;
+    }
+    
+    .checkbox-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+      gap: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      background-color: #fff;
+      padding: 5px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .checkbox-item input {
+      margin-right: 4px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+    }
+    
+    th, td {
+      padding: 12px 8px;
+      text-align: center;
+      border: 1px solid #ddd;
+    }
+    
+    thead tr:first-child th {
+      background-color: #1565c0;
+      color: white;
+      font-size: 18px;
+      padding: 15px;
+    }
+    
+    thead tr:last-child th {
+      background-color: #2196f3;
+      color: white;
+    }
+    
+    tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    
+    tbody tr:hover {
+      background-color: #e3f2fd;
+    }
+    
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      text-align: center;
+    }
+    
+    input[type="number"]:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #2196f3;
+      box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+    }
+    
+    .btn {
+      background-color: #1565c0;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+    }
+    
+    .btn:hover {
+      background-color: #0d47a1;
+    }
+    
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .search-box {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .search-box input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    .collapse-toggle {
+      background: none;
+      border: none;
+      color: #1565c0;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+    
+    .collapse-toggle:after {
+      content: "▼";
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .collapse-toggle.collapsed:after {
+      content: "▲";
+    }
+    
+ .collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+/* เมื่อมีคลาส show เพิ่มเข้ามา */
+.collapsible-content.show {
+  max-height: 1000px; /* หรือปรับตามความสูงเนื้อหา */
+}
+
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>รหัสวัสดุสิ้นเปลืองโรงงาน-ฐาน 2 (แผนกผลิต)</h1>
+    
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="ค้นหารหัสหรือชื่อวัสดุ..." oninput="searchTable()">
+    </div>
+    
+    <div class="row-selector">
+      <div class="selector-controls">
+        <button class="collapse-toggle" id="selectorToggle" onclick="toggleSelectors()">
+          เลือกแถวที่ต้องการแสดง
+        </button>
+        <div class="selector-buttons">
+          <button onclick="selectAll()">เลือกทั้งหมด</button>
+          <button onclick="deselectAll()">ยกเลิกทั้งหมด</button>
+        </div>
+      </div>
+      <div class="collapsible-content" id="selectorsContent">
+        <div id="rowSelectors" class="checkbox-container"></div>
+      </div>
+    </div>
+    
+    <table id="materialTable">
+      <thead>
+        <tr>
+          <th colspan="6">รหัสวัสดุสิ้นเปลืองโรงงาน-ฐาน 2 (แผนกผลิต)</th>
+        </tr>
+        <tr>
+          <th>ลำดับ</th>
+          <th>รหัส</th>
+          <th>ชื่อ</th>
+          <th>จำนวน</th>
+          <th>หน่วยใช้</th>
+          <th>เลขที่บิล</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    
+    <div class="actions">
+      <button id="exportBtn" class="btn" onclick="exportToExcel()">
+        ส่งออกข้อมูล (Export)
+      </button>
+      <button id="clearBtn" class="btn" style="background-color: #e53935" onclick="clearInputs()">
+        ล้างข้อมูล
+      </button>
+    </div>
+      <div class="footer">
+        © 2025 Over Head Checker by NAMJIT
+      </div>
+  </div>
+
+  <script>
+    const codes = [
+      "OH0PDBR0001", "OH0PDBR0002", "OH0PDBR0003", "OH0PDBU0001",
+      "OH0PDIR0001", "OH0PDIR0002", "OH0PDLB0004", "OH0PDLB0005",
+      "OH0PDNE0001", "OH0PDNE0002", "OH0PDRI0001", "OH0PDRI0002",
+      "OH0PDRU0001", "OH0PDSI0001", "OH0PDSR0001", "OH0PDSR0002",
+      "OH0PDSR0003", "OH0PDSR0004", "OH0PDSR0005", "OH0PDST0001",
+      "OH0PDST0002", "OH0PDTA0001", "OH0PDTA0002", "OH0PDTA0003",
+      "OH0PDVI0001", "OH0PDVI0002", "OH0PDVI0003", "OH0PDWR0001",
+      "OH0PDWR0002", "OH0PDLB0008", "OH0PDLB0002", "OH0PDLB0003"
+    ];
+
+    const names = [
+      "แปรงทองเหลืองขัดเครื่อง ( เล็ก )", "แปรงทาสี 1\"(1/2) (ปัดเครื่อง)", "แปรงทาสี 2\" (ปัดเครื่อง)", "แผ่นพลาสติกกันกระแทก",
+      "ลูกหมึกตีวันที่ผลิต INK ROLL ( ยาว )", "ลูกหมึกตีวันที่ผลิต INK ROLL ( สั้น )", "แผงพริกไทจันทร์ชมพู(1250แผ่น/กล่อง)", "วันที่ผลิต/ควรบริโภค",
+      "เข็มเย็บกระสอบ", "เข็มเย็บจักร", "Ribbon เครื่อง print sticker US-150 (Inkside out) 110 mm x 300 M", "ฟิล์มเหยียบวันที่ ( RIBBON ) สีดำ",
+      "หนังยางวงเล็ก", "สารกันชื้น", "เชือกฟาง (สีเขียว)", "เชือกฟาง (สีแดง)",
+      "เชือกฟาง (สีฟ้า)", "เชือกฟาง (สีม่วง)", "เชือกฟาง (สีเหลือง)", "สายรัด (เขียว) 12 มม.",
+      "สายรัด (น้ำเงิน) 12 มม.", "สก็อตเทป OPP 2 นิ้ว สีน้ำเงิน (1/72ม้วน)", "สก็อตเทป OPP ขนาด 2 นิ้ว-ใส (1/72ม้วน)", "สก็อตเทป OPP ขนาด 3/4 นิ้ว - ใส",
+      "CLEANING SOLUTION 1 Liter", "INK BLACK 750 ml", "MAKE-UP FLUID 750 ml", "แรป 10",
+      "แรป 8", "สติ๊กเกอร์ไทดำป่น (พื้นชมพู)", "ป้ายกระดาษน้ำหนัก 2 กก.", "ป้ายกระดาษน้ำหนัก 5 กก."
+    ];
+
+    const units = [
+      "อัน", "อัน", "อัน", "ม้วน",
+      "ม้วน", "ม้วน", "แผ่น", "ม้วน",
+      "เล่ม", "เล่ม", "ม้วน", "ม้วน",
+      "กก.", "ชิ้น", "ม้วน", "ม้วน",
+      "ม้วน", "ม้วน", "ม้วน", "ม้วน",
+      "ม้วน", "ม้วน", "ม้วน", "ม้วน",
+      "ขวด", "กล่อง", "กล่อง", "ม้วน",
+      "ม้วน", "ดวง", "ใบ", "ใบ"
+    ];
+
+    // เพิ่มฟ้อนต์ไทย
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500&family=Sarabun:wght@300;400;500&display=swap';
+    document.head.appendChild(fontLink);
+
+    // สร้างตาราง
+    const tbody = document.getElementById('tableBody');
+    const quantityInputs = [];
+    const billInputs = [];
+    
+    for (let i = 0; i < codes.length; i++) {
+      const row = document.createElement('tr');
+      row.setAttribute('data-row', i + 1);
+      row.setAttribute('data-code', codes[i].toLowerCase());
+      row.setAttribute('data-name', names[i].toLowerCase());
+      
+      const amountInput = document.createElement('input');
+      amountInput.type = 'number';
+      amountInput.min = '0';
+      amountInput.dataset.index = i;
+      quantityInputs.push(amountInput);
+      
+      const billInput = document.createElement('input');
+      billInput.type = 'text';
+      billInput.dataset.index = i;
+      billInputs.push(billInput);
+      
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${codes[i] || ''}</td>
+        <td>${names[i] || ''}</td>
+        <td></td>
+        <td>${units[i] || ''}</td>
+        <td></td>
+      `;
+      
+      row.cells[3].appendChild(amountInput);
+      row.cells[5].appendChild(billInput);
+      
+      tbody.appendChild(row);
+    }
+    
+    // แก้ไขฟังก์ชั่นนำทางระหว่างช่องกรอกด้วยปุ่ม Enter (แนวดิ่ง) - รองรับการกรอง
+    quantityInputs.forEach((input, index) => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          
+          // หาช่องกรอกถัดไปที่อยู่ในแถวที่มองเห็นได้
+          let nextInput = findNextVisibleInput(quantityInputs, index);
+          if (nextInput) {
+            nextInput.focus();
+          }
+        }
+      });
+    });
+    
+    billInputs.forEach((input, index) => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          
+          // หาช่องกรอกถัดไปที่อยู่ในแถวที่มองเห็นได้
+          let nextInput = findNextVisibleInput(billInputs, index);
+          if (nextInput) {
+            nextInput.focus();
+          }
+        }
+      });
+    });
+    
+    // ฟังก์ชันค้นหาช่องกรอกถัดไปที่มองเห็นได้
+    function findNextVisibleInput(inputs, currentIndex) {
+      let startIndex = (currentIndex + 1) % inputs.length;
+      let index = startIndex;
+      
+      // วนลูปจนกว่าจะหาช่องกรอกที่มองเห็นได้หรือวนครบรอบ
+      do {
+        // ตรวจสอบว่าแถวที่มีช่องกรอกนี้มองเห็นได้หรือไม่
+        let row = inputs[index].closest('tr');
+        if (row.style.display !== 'none') {
+          return inputs[index];
+        }
+        
+        index = (index + 1) % inputs.length;
+      } while (index !== startIndex);
+      
+      // กรณีไม่พบช่องกรอกที่มองเห็นได้เลย
+      return null;
+    }
+
+    // สร้างตัวเลือกแถว
+    const selectorContainer = document.getElementById('rowSelectors');
+    for (let i = 1; i <= codes.length; i++) {
+      const checkboxItem = document.createElement('div');
+      checkboxItem.className = 'checkbox-item';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = i;
+      checkbox.id = 'row-' + i;
+      checkbox.checked = false;
+      checkbox.addEventListener('change', filterRows);
+      
+      const label = document.createElement('label');
+      label.htmlFor = 'row-' + i;
+      label.textContent = i;
+      
+      checkboxItem.appendChild(checkbox);
+      checkboxItem.appendChild(label);
+      selectorContainer.appendChild(checkboxItem);
+    }
+
+    // ฟังก์ชันแสดง/ซ่อนตัวเลือกแถว
+    function toggleSelectors() {
+      const content = document.getElementById('selectorsContent');
+      const toggle = document.getElementById('selectorToggle');
+      content.classList.toggle('show');
+      toggle.classList.toggle('collapsed');
+    }
+    
+    // เลือกทั้งหมด
+    function selectAll() {
+      const checkboxes = selectorContainer.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      filterRows();
+    }
+    
+    // ยกเลิกทั้งหมด
+    function deselectAll() {
+      const checkboxes = selectorContainer.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+      });
+      filterRows();
+    }
+
+    function filterRows() {
+      const selected = Array.from(selectorContainer.querySelectorAll('input:checked')).map(c => parseInt(c.value));
+      const rows = tbody.querySelectorAll('tr');
+      
+      if (selected.length === 0) {
+        rows.forEach(r => r.style.display = '');
+        return;
+      }
+      
+      rows.forEach(r => {
+        const num = parseInt(r.getAttribute('data-row'));
+        r.style.display = selected.includes(num) ? '' : 'none';
+      });
+    }
+
+    function searchTable() {
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const rows = tbody.querySelectorAll('tr');
+      
+      rows.forEach(row => {
+        const code = row.getAttribute('data-code');
+        const name = row.getAttribute('data-name');
+        
+        if (code.includes(searchTerm) || name.includes(searchTerm) || searchTerm === '') {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    function exportToExcel() {
+      // สร้าง BOM (Byte Order Mark) เพื่อให้ Excel รองรับภาษาไทย
+      let csvContent = "\uFEFF";
+      
+      // เพิ่มส่วนหัวของตาราง
+      csvContent += "ลำดับ,รหัส,ชื่อ,จำนวน,หน่วยใช้,เลขที่บิล\n";
+      
+      const rows = tbody.querySelectorAll('tr');
+      rows.forEach(row => {
+        if (row.style.display === 'none') return;
+        
+        const cells = Array.from(row.querySelectorAll('td'));
+        const amountValue = cells[3].querySelector('input')?.value || '';
+        const billValue = cells[5].querySelector('input')?.value || '';
+        
+        const data = [
+          cells[0].textContent,
+          `"${cells[1].textContent}"`,  // เพิ่มเครื่องหมายคำพูดเพื่อป้องกันการแปลงข้อมูล
+          `"${cells[2].textContent}"`,
+          amountValue,
+          `"${cells[4].textContent}"`,
+          `"${billValue}"`
+        ];
+        
+        csvContent += data.join(',') + "\n";
+      });
+      
+      // สร้าง Blob และ URL สำหรับดาวน์โหลด
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "โรงงานฐาน2_แผนกผลิต.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    function clearInputs() {
+      if (confirm('คุณต้องการล้างข้อมูลที่กรอกทั้งหมดหรือไม่?')) {
+        quantityInputs.forEach(input => {
+          input.value = '';
+        });
+        billInputs.forEach(input => {
+          input.value = '';
+        });
+      }
+    }
+    
+    // เริ่มต้นให้ทุกแถวถูกเลือก และแสดงตัวเลือกแถว
+    document.addEventListener("DOMContentLoaded", function() {
+      toggleSelectors();
+      selectAll(); // เลือกทุกแถวเมื่อโหลดหน้า
+    });
+  </script>
+</body>
+</html>

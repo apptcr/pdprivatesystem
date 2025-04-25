@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รหัสบรรจุภัณฑ์ (แผนกผลิต)</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #3b82f6;
+      --primary-light: #bfdbfe;
+      --secondary: #64748b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --light: #f9fafb;
+      --dark: #1e293b;
+      --border: #e2e8f0;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: all 0.2s ease;
+    }
+    
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background: var(--light);
+      padding: 20px;
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      width: 95%;
+    }
+    
+    header {
+      margin-bottom: 30px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+    }
+    
+    h1 {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    
+    .filter-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8fafc;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    
+    .filter-input {
+      flex-grow: 1;
+      position: relative;
+    }
+    
+    .filter-input i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--secondary);
+    }
+    
+    .filter-section input {
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      font-size: 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Sarabun', sans-serif;
+    }
+    
+    .filter-section input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Sarabun', sans-serif;
+      font-weight: 500;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-secondary {
+      background-color: #f1f5f9;
+      color: var(--secondary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    
+    th, td {
+      padding: 15px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    th {
+      background-color: #f8fafc;
+      font-weight: 600;
+      color: var(--secondary);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      font-size: 15px;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+    }
+    
+    td {
+      font-size: 15px;
+    }
+    
+    td input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: 'Sarabun', sans-serif;
+      font-size: 15px;
+    }
+    
+    td input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    /* ปรับปรุงสไตล์ปุ่ม + และ - */
+    .input-with-button {
+      display: flex;
+      align-items: center;
+      gap: 5px; /* ลดช่องว่างระหว่างช่องกรอกข้อมูลและปุ่ม */
+    }
+    
+    .input-with-button input {
+      flex: 1;
+    }
+    
+    .action-btn {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;  /* ลดขนาดปุ่ม */
+      height: 22px; /* ลดขนาดปุ่ม */
+      min-width: 22px; /* กำหนดขนาดขั้นต่ำ */
+      border-radius: 50%;
+      font-size: 12px; /* ลดขนาดไอคอน */
+    }
+    
+    .add-lot {
+      color: var(--success);
+      background-color: #ecfdf5;
+      border: 1px solid #a7f3d0;
+    }
+    
+    .add-lot:hover {
+      background-color: #d1fae5;
+      transform: scale(1.1);
+    }
+    
+    .delete-lot {
+      color: var(--danger);
+      background-color: #fee2e2;
+      border: 1px solid #fecaca;
+      margin-left: 2px;
+    }
+    
+    .delete-lot:hover {
+      background-color: #fecaca;
+      transform: scale(1.1);
+    }
+    
+    /* แสดง sub-item ในตาราง */
+    tr.sub-item td:first-child {
+      padding-left: 30px;
+      position: relative;
+    }
+    
+    tr.sub-item td:first-child::before {
+      content: "↳";
+      position: absolute;
+      left: 12px;
+      color: var(--secondary);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+    
+    @media (max-width: 768px) {
+      .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .btn-group {
+        display: flex;
+        gap: 8px;
+      }
+      
+      .btn {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>รหัสบรรจุภัณฑ์ (แผนกผลิต)</h1>
+    </header>
+
+    <div class="filter-section">
+      <div class="filter-input">
+        <i class="fas fa-filter"></i>
+        <input type="text" id="rowSelector" placeholder="ใส่เลขแถว เช่น 101 103">
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="filterRows()">
+          <i class="fas fa-search"></i> กรอง
+        </button>
+        <button class="btn btn-secondary" onclick="resetFilter()">
+          <i class="fas fa-redo"></i> แสดงทั้งหมด
+        </button>
+        <button class="btn btn-success" onclick="exportTable()">
+          <i class="fas fa-file-export"></i> Export
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="packagingTable">
+        <thead>
+          <tr>
+            <th>ลำดับ</th>
+            <th>รหัส</th>
+            <th>หมวด</th>
+            <th>ชื่อ</th>
+            <th>Lot</th>
+            <th>จำนวน</th>
+            <th>หน่วยใช้</th>
+            <th>เลขที่บิล</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+      <div class="footer">
+        © 2025 Packaging Material Checker by NAMJIT
+      </div>
+  </div>
+
+  <script>
+    const number = [
+1,
+2,
+3,
+4,
+5,
+6,
+7,
+8,
+9,
+10,
+11,
+12,
+13,
+14,
+15,
+16,
+17,
+18,
+19,
+20,
+21,
+22,
+24,
+25,
+26,
+37,
+39,
+40,
+41,
+42,
+43,
+44,
+45,
+46,
+47,
+48,
+49,
+50,
+52,
+53,
+54,
+55,
+56,
+58,
+59,
+61,
+63,
+66,
+67,
+68,
+69,
+70,
+71,
+72,
+75,
+76,
+77,
+80,
+83,
+84,
+85,
+86,
+87,
+88,
+89,
+90,
+91,
+92,
+93,
+94,
+95,
+97,
+98,
+99,
+100,
+101,
+102,
+103,
+104,
+105,
+106,
+107,
+108,
+109,
+110,
+111,
+112,
+113,
+114,
+115,
+116,
+117,
+118,
+119,
+121,
+122,
+123,
+124,
+125,
+126,
+127,
+128,
+129,
+130,
+131,
+132,
+133,
+134,
+135,
+136,
+137,
+138,
+139,
+140,
+142,
+143,
+144,
+145,
+146,
+147,
+148,
+149,
+150,
+152,
+153,
+154,
+155,
+156,
+157,
+158,
+159,
+160,
+161,
+162,
+164,
+165,
+166,
+167,
+168,
+169,
+170,
+171,
+172,
+173,
+174,
+175,
+176,
+177,
+178,
+179,
+180,
+181,
+182,
+];
+    const codes = [
+  "PMS243721WH",
+  "PMS152521KT",
+  "PMS152517KP",
+  "PMS183026KT",
+  "PMS183026KP",
+  "PMS203220KT",
+  "PMS203023KP",
+  "PMS203620KT",
+  "PMS203620KP",
+  "PMBOXXXXIKT",
+  "PMBOXXXXJKT",
+  "PMBOXXXXAKT",
+  "PMBOXXXXBKT",
+  "PMBOXXXXCKT",
+  "PMBOXXXXDKT",
+  "PMBOXXXXEKT",
+  "PMBOXXXXFKT",
+  "PMBOXXXXGBC",
+  "PMBOXXXXHXX",
+  "PMBOXXXX1BC",
+  "PMBOXXXX2BC",
+  "PMBOXXXXKKT",
+  "PMBOXXXXAPS",
+  "PMBOXXXXBPS",
+  "PMBOXXXXCPS",
+  "PMC001ACLXX",
+  "PMG001ACLXX",
+  "PMB5HRRYEKT",
+  "PMB5HRRPUKT",
+  "PMB5HRRREKT",
+  "PMBNSNNXXKT",
+  "PMBNLNNXXKT",
+  "PMB5HPNORKT",
+  "PMB5HPNGRBC",
+  "PMB1KBNGRKT",
+  "PMB5HBNGRKT",
+  "PMB5HBNGRBC",
+  "PMB5HPPGRKT",
+  "PMB5HPPYEKT",
+  "PMB1KNNGRKT",
+  "PMB5HNNGRKT",
+  "PMBXXCSREKT",
+  "PMB5HRSLBKT",
+  "PMB5HBRBRBC",
+  "PMB5HBRBRKT",
+  "PMB5HBRBRBC",
+  "PMB1HSAREKT",
+  "PMB5HSAREKT",
+  "PMB5HGWPIKT",
+  "PMB5HGWXXKT",
+  "PMB5HWPPIKT",
+  "PMB1HWPPIKT",
+  "PMB1HBPLBKT",
+  "PMB5HBPLBKT",
+  "PMB1HGWPIKT",
+  "PMB1HGBLBKT",
+  "PMB5HGWGRKT",
+  "PMB1HGWGRKT",
+  "PMB1HCCBRKT",
+  "PMB5HCCBRKT",
+  "PMB1HCOGRKT",
+  "PMB5HCOGRKT",
+  "PMB5HNNCLXX",
+  "PMB1KNNCLXX",
+  "PMB1HCMBRKT",
+  "PMB5HCMBRKT",
+  "PMB10PNLBKT",
+  "PMB10PNGRKT",
+  "PMB10PNREKT",
+  "PMB10PNPUKT",
+  "PMB10PNYEKT",
+  "PMB5HPNORBC",
+  "PMB5HBRBRBC",
+  "PMB5HRSGRBC",
+  "PMF2HRRREKT",
+  "PMF5HBLGRKT",
+  "PMF1KWGLBKT",
+  "PMF5HBGGRKT",
+  "PMF1HWSPIKT",
+  "PMF5HWSPIKT",
+  "PMF5HWSGRKT",
+  "PMF1HBSLBKT",
+  "PMF5HBSLBKT",
+  "PMF5HRBREKT",
+  "PMF5HMBGRKT",
+  "PMF5HMPYEKT",
+  "PMF5HBBLBKT",
+  "PMF5HBBPUKT",
+  "PMF5HKBREKT",
+  "PMF5HMPGRKT",
+  "PMF5HPNLBKT",
+  "PMF5HPNYEKT",
+  "PMF5HPNORKT",
+  "PMF1KBNGRKT",
+  "PMF5HBNGRKT",
+  "PMF5HPPREKT",
+  "PMF5HPPPUKT",
+  "PMF1KSPREKT",
+  "PMF5HSPREKT",
+  "PMF1KSBYEKT",
+  "PMF1HNNGRBC",
+  "PMF5HNNGRBC",
+  "PMF5HNNGRKT",
+  "PMF1HRCREKT",
+  "PMF5HRCREZA",
+  "PMF5HRCREKT",
+  "PMFSACSREKT",
+  "PMF1HWPGRKT",
+  "PMFSAWPPIKT",
+  "PMF1HHBLBKT",
+  "PMF5HHBLBKT",
+  "PMF5HJTLBKT",
+  "PMF01XXCLXX",
+  "PMF03XXCLXX",
+  "PMF02XXCLXX",
+  "PMF5HMBGRBC",
+  "PMF5HBNPUBC",
+  "PMF5HBBPUBC",
+  "PMF5HKBREBC",
+  "PMF5HMPGRBC",
+  "PMF5HSPBRBC",
+  "PMF5HSBYEBC",
+  "PMF5HJTLBBC",
+  "PMF1HWSGRBC",
+  "PMF1HBSGRBC",
+  "PMF1HHBLBBC",
+  "PML55GPGRKT",
+  "PMSH26535XX",
+  "PMH1A2A06WH",
+  "PMP101507XX",
+  "PMP121807XX",
+  "PMP203008XX",
+  "PMP244208XX",
+  "PMP060907XX",
+  "PMP071107XX",
+  "PMP091412XX",
+  "PMP183012XX",
+  "PMP111612NU",
+  "PMP030507XX",
+  "PMP131912KT",
+  "PMP142212XX",
+  "PMP152012NU",
+  "PMP152512XX",
+  "PMP162212XX",
+  "PMP162212KT",
+  "PMP162412KT",
+  "PMP131912XX",
+  "PMF5HPNORBC",
+  "PMBIGBAGAXX",
+  "PMP142108XX",
+  "PMH121807XX",
+  "PMH142207XX",
+  "PMFXXCSREKT"
+];
+    const names = [
+  "กระสอบขาว 24x37 (50 กก.)",
+  "กระสอบปุ๋ย 15 กก. 15x25 แดง",
+  "กระสอบปุ๋ย 15 กก. 15x25 พรีเมี่ยม",
+  "กระสอบปุ๋ย 15 กก. 18x30 แดง",
+  "กระสอบปุ๋ย 15 กก. 18x30 พรีเมี่ยม",
+  "กระสอบปุ๋ย 30 กก. 20x32 แดง",
+  "กระสอบปุ๋ย 30 กก. 20x32 พรีเมี่ยม",
+  "กระสอบปุ๋ย 30 กก. 20x36 แดง",
+  "กระสอบปุ๋ย 30 กก. 20x36 พรีเมี่ยม",
+  "(I) กล่องกระดาษ 100g (10ชุด/กล่องใหญ่)",
+  "(J) กล่องกระดาษ 100g (10ชุด/กล่องเล็ก)",
+  "(A) กล่องกระดาษใบใหญ่",
+  "(B) กล่องกระดาษใบเล็ก",
+  "(C) กล่องกระดาษ (100g * 24ซอง)",
+  "(D) กล่องกระดาษ (ถั่วแพ็ค 500g * 6 กก.)",
+  "(E) กล่องกระดาษ (ถั่วดิบเลาะ * 6 กก.)",
+  "(F) กล่องกระดาษ (100g * 12 ซอง )",
+  "(G) กล่องพิมพ์ Big C",
+  "(H) กล่องอบเชย",
+  "กล่อง Big C (9 กก.)",
+  "กล่องถั่วดิบ Big C (9 กก.)",
+  "(K) กล่องบรรจุพริกไทขวด ขนาด 264x178x129",
+  "กล่องไปรษณีย์ A",
+  "กล่องไปรษณีย์ B",
+  "กล่องไปรษณีย์ C",
+  "ฝาขวดพลาสติก(ขวดพริกไทย)",
+  "ขวดแก้ว ขนาด 100 ml (พริกไทย)",
+  "ซองข้าวคั่ว 500g (เหลือง)",
+  "ซองข้าวคั่วโบราณ 500g (ม่วง)",
+  "ซองข้าวคั่วปรุงรส 500g (แดง)",
+  "ซองข้าวทองหูหิ้ว (305 x 380) เล็ก",
+  "ซองข้าวทองหูหิ้ว (406 x 460) ใหญ่",
+  "ซองถั่วลิสงดิบ 500g (ส้ม)",
+  "ซองถั่วลิสงดิบ 500g Big C",
+  "ซองถั่วลิสงดิบเลาะเปลือก 1000g",
+  "ซองถั่วลิสงดิบเลาะเปลือก 500g",
+  "ซองถั่วลิสงดิบเลาะเปลือก 500g Big c",
+  "ซองถั่วลิสงแปรรูป 500g (เขียว)",
+  "ซองถั่วลิสงแปรรูป 500g (เหลือง)",
+  "ซองธัญพืชคัดพิเศษ 1000g (เขียว)",
+  "ซองธัญพืชคัดพิเศษ 500g (เขียว)",
+  "ซองนอกพริกน้ำตาลบรรจุ 50 คู่ (แดง)",
+  "ซองน้ำตาลกรวด 500g",
+  "ซองน้ำตาลกรวด 500g Big C",
+  "ซองน้ำตาลทรายแดง 500g",
+  "ซองน้ำตาลทรายแดง 500g Big C",
+  "ซองโป๊ยกั๊ก 100g",
+  "ซองโป๊ยกั๊ก 500g",
+  "ซองพริกไทขาวป่น 500g ซิปล็อคชมพู",
+  "ซองพริกไทป่นจันท์ 6 x 9 x 0.15 (2สี)",
+  "ซองพริกไทเม็ดขาว 500g ซิปล็อคชมพู",
+  "ซองพริกไทเม็ดขาว 100g ซิปล็อคชมพู",
+  "ซองพริกไทเม็ดดำ 100g ซิปล็อคฟ้า",
+  "ซองพริกไทเม็ดดำ 500g ซิปล็อคฟ้า",
+  "ซองพริกไทยขาวป่น 100g ซิปล็อคชมพู",
+  "ซองพริกไทยดำป่น 100g ซิปล็อคฟ้า",
+  "ซองพริกไทยป่นจันทร์ 500g (เขียว)",
+  "ซองพริกไทยป่นจันทร์ 100g",
+  "ซองพริกหอม 100g",
+  "ซองพริกหอม 500g",
+  "ซองเมล็ดผักชี 100g",
+  "ซองเมล็ดผักชี 500g",
+  "ซองใส Vaccum (160 x 255) 500g",
+  "ซองใส Vaccum (200 x 310) 1000g",
+  "ซองอบเชย 100g",
+  "ซองอบเชย 500g",
+  "ถุงถั่วลิสงดิบ 10 กก. (แบบสั้น/สีฟ้า)",
+  "ถุงถั่วลิสงดิบ 10 กก. (แบบสั้น/สีเขียว)",
+  "ถุงถั่วลิสงดิบ 10 กก. (แบบสั้น/สีแดง)",
+  "ถุงถั่วลิสงดิบ 10 กก. (แบบสั้น/สีม่วง)",
+  "ถุงถั่วลิสงดิบ 10 กก. (แบบสั้น/สีเหลือง)",
+  "Big C Happy price pro ซองถั่วลิสงดิบ 500 g.",
+  "Big C Happy price pro ซองน้ำตาลทรายแดง 500 g.",
+  "Big C Happy price pro ซองน้ำตาลกรวด 500 g.",
+  "ม้วนข้าวคั่ว 200 g. (แดง)",
+  "ม้วนข้าวบาร์เลย์ 500 g.",
+  "ม้วนข้าวเหนียวขาว 1000 g.",
+  "ม้วนข้าวเหนียวดำ 500 g.",
+  "ม้วนงาขาว 100 g.",
+  "ม้วนงาขาว 500 g. (ชมพู)",
+  "ม้วนงาขาว 500 g. (เขียว)",
+  "ม้วนงาดำ 100 g.",
+  "ม้วนงาดำ 500 g.",
+  "ม้วนแดงเล็ก 500g.",
+  "ม้วนถั่วเขียว 500 g.",
+  "ม้วนถั่วเขียวซีกเลาะเปลือก 500 g. (ถั่วเนื้อ)",
+  "ม้วนถั่วดำ 500 g.",
+  "ม้วนถั่วดำคัดเกรดพิเศษ 500 g.",
+  "ม้วนถั่วแดงหลวง 500 g. (ถั่วแดงใหญ่)",
+  "ม้วนถั่วเนื้อ 500 g. (B-เขียว)",
+  "ม้วนถั่วลิสงดิบ 500 g. (ฟ้า)",
+  "ม้วนถั่วลิสงดิบ 500 g. (เหลือง)",
+  "ม้วนถั่วลิสงดิบ 500 g. (ส้ม)",
+  "ม้วนถั่วลิสงดิบเลาะเปลือก 1000 g.",
+  "ม้วนถั่วลิสงดิบเลาะเปลือก 500 g.",
+  "ม้วนถั่วลิสงแปรรูป 500 g. (สีส้ม)",
+  "ม้วนถั่วลิสงแปรรูป 500 g. (สีม่วง)",
+  "ม้วนถั่วเหลืองซีก 1000 g.",
+  "ม้วนถั่วเหลืองซีก 500 g.",
+  "ม้วนถั่วเหลืองเม็ด 1000 g.",
+  "ม้วนธัญพืช 100 g. Big C",
+  "ม้วนธัญพืช 500 g. Big C",
+  "ม้วนธัญพืชคัดพิเศษ 500 g.",
+  "ม้วนพริกขี้หนูสวนป่น (พรีเมี่ยม) 100 g.",
+  "ม้วนพริกขี้หนูสวนป่น (พริกแซ่ป) 500 g.",
+  "ม้วนพริกขี้หนูสวนป่น(พรีเมี่ยม) 500 g.",
+  "ม้วนพริกขี้หนูสวนป่น+น้ำตาล 1.3 g. + 5 g. (แดง-ขาว)",
+  "ม้วนพริกไทยเม็ดจันท์ 100 g. ( สีเขียว )",
+  "ม้วนเมล็ดพริกไทจันท์ 12 g. (ชมพู)",
+  "ม้วนเมล็ดแมงลัก 100 g.",
+  "ม้วนเมล็ดแมงลัก 500 g.",
+  "ม้วนลูกเดือย 500 g.",
+  "ม้วนใสพิมพ์ตาไฟ (EYE MARK) 205 x 500 (พริกไท)",
+  "ม้วนใสพิมพ์ตาไฟ (พิเศษ)",
+  "ม้วนใสพิมพ์ตาไฟ (EYE MARK) 310 x 240 (ถั่วป่น500 g.)",
+  "Big C Happy price pro ม้วนถั่วเขียว 500 g.",
+  "Big C Happy price pro ม้วนถั่วลิสงดิบเลาะเปลือกแพ็ค 500 g.",
+  "Big C Happy price pro ม้วนถั่วดำ 500 g.",
+  "Big C Happy price pro ม้วนถั่วแดงใหญ่ 500 g.",
+  "Big C Happy price pro ม้วนถั่วเขียวซีกเลาะเปลือก 500 g.",
+  "Big C Happy price pro ม้วนถั่วเหลืองซีก 500 g.",
+  "Big C Happy price pro ม้วนถั่วเหลืองเม็ด 500 g.",
+  "Big C Happy price pro ม้วนลูกเดือย 500 g.",
+  "Big C Happy price pro ม้วนงาขาว 100 g.",
+  "Big C Happy price pro ม้วนงาดำ 100 g.",
+  "Big C Happy price pro ม้วนเมล็ดแมงลัก 100 g.",
+  "ฉลากขวดพริกไทย PVC T-DIE 35 mic Size 69mm. x 57mm.",
+  "ฟิลม์หด Pack ขวดพริกไทย LDPE Shrink Filmกว้าง 265 mm. 35-45 mic",
+  "ถุง HD ขาวนม 10.5 x 23.5 x 0.12 พับข้าง",
+  "PP 10 x 15 x 0.07",
+  "PP 12 x 18 x 0.07",
+  "PP 20 x 30 x 0.08",
+  "PP 24 x 42 x 0.08",
+  "PP 6 x 9 x 0.07",
+  "PP 7 x 11 x 0.07",
+  "PP 9 x 14 x 0.12",
+  "ถุง PP .18 x 30 x 0.12",
+  "ถุง PP 11 x 16 x 0.16 (เจาะตัว U)",
+  "ถุง PP 3 x 5 x 0.07",
+  "ถุง PP. 13 x 19 x 0.12 (พิมพ์ข้าวทอง)",
+  "ถุง PP. 14 x 22 x 0.07",
+  "ถุง PP. 15 x 16 x 0.12 (เจาะตัว U)",
+  "ถุง PP. 15 x 25 x 0.12",
+  "ถุง PP. 16 x 22 x 0.12",
+  "ถุง PP. 16 x 22 x 0.12 (พิมพ์ข้าวทอง)",
+  "ถุง PP. 16 x 24 x 0.12 ( พิมพ์ข้าวทอง )",
+  "ถุง Size PP 13 x 19 x 0.12",
+  "Big C Happy price pro ม้วนถั่วลิสงดิบ 500 g.",
+  "Big Bag (A)",
+  "ถุง PP. 14 x 21 x 0.08",
+  "ถุง HD. 12 x 18 x 0.07",
+  "ถุง HD. 14 x 22 x 0.07",
+  "ม้วนซองนอกพริกน้ำตาลบรรจุ 50 คู่ สีแดงข้าวทอง"
+];
+    const categories = [
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กระสอบ",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"กล่อง",
+"ฝา",
+"ขวดแก้ว",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ซอง",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"ม้วน",
+"Label",
+"Shrink",
+"HD",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"PP",
+"ม้วน",
+"Bigbag",
+"PP",
+"HD",
+"HD",
+"ม้วน",
+];
+
+const units = [
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ชิ้น",
+"ขวด",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"กก.",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"ใบ",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"เมตร",
+"ชิ้น",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"กก.",
+"เมตร",
+"ใบ",
+"กก.",
+"กก.",
+"กก.",
+"เมตร"
+];
+    const table = document.getElementById('tableBody');
+
+    // สร้างตาราง
+    for (let i = 0; i < number.length; i++) {
+      const tr = document.createElement('tr');
+      tr.dataset.mainRow = i;
+      tr.dataset.sequence = number[i];
+      tr.innerHTML = `
+        <td>${number[i]}</td>
+        <td>${codes[i]}</td>
+        <td>${categories[i]}</td>
+        <td>${names[i]}</td>
+        <td class="input-with-button">
+          <input type="text" class="form-input" data-col="lot" data-row="${i}" data-index="0">
+          <span class="action-btn add-lot" onclick="duplicateRow(this)"><i class="fas fa-plus"></i></span>
+        </td>
+        <td><input type="text" class="form-input" data-col="amount" data-row="${i}" data-index="0"></td>
+        <td>${units[i]}</td>
+        <td><input type="text" class="form-input" data-col="bill" data-row="${i}" data-index="0"></td>
+      `;
+      table.appendChild(tr);
+    }
+
+    // เพิ่มแถวย่อยของ Lot
+    function duplicateRow(elem) {
+      const row = elem.closest('tr');
+      const mainRow = row.dataset.mainRow;
+      const sequence = row.dataset.sequence;
+      const clone = document.createElement('tr');
+      
+      // กำหนดให้แถวใหม่เป็นแถวย่อย
+      clone.classList.add('sub-item');
+      clone.dataset.mainRow = mainRow;
+      clone.dataset.sequence = sequence;
+      
+      // หาจำนวน sub-item ที่มีอยู่ในปัจจุบันสำหรับแถวหลักนี้
+      const existingSubItems = document.querySelectorAll(`tr.sub-item[data-main-row="${mainRow}"]`);
+      const subIndex = existingSubItems.length + 1;
+      
+      clone.innerHTML = `
+        <td>${sequence}</td>
+        <td>${codes[mainRow]}</td>
+        <td>${categories[mainRow]}</td>
+        <td>${names[mainRow]}</td>
+        <td class="input-with-button">
+          <input type="text" class="form-input" data-col="lot" data-row="${mainRow}" data-index="${subIndex}">
+          <span class="action-btn add-lot" onclick="duplicateRow(this)"><i class="fas fa-plus"></i></span>
+          <span class="action-btn delete-lot" onclick="deleteRow(this)"><i class="fas fa-minus"></i></span>
+        </td>
+        <td><input type="text" class="form-input" data-col="amount" data-row="${mainRow}" data-index="${subIndex}"></td>
+        <td>${units[mainRow]}</td>
+        <td><input type="text" class="form-input" data-col="bill" data-row="${mainRow}" data-index="${subIndex}"></td>
+      `;
+      
+      // แทรกแถวใหม่ต่อจากแถวเดิมหรือแถวย่อยสุดท้าย
+      const lastSubItem = [...document.querySelectorAll(`tr[data-main-row="${mainRow}"]`)].pop();
+      if (lastSubItem) {
+        table.insertBefore(clone, lastSubItem.nextSibling);
+      } else {
+        table.insertBefore(clone, row.nextSibling);
+      }
+      
+      // ผูกเหตุการณ์คีย์บอร์ดสำหรับแถวใหม่
+      setupKeyEvents(clone);
+      
+      // โฟกัสที่ช่อง Lot ของแถวใหม่
+      const firstInput = clone.querySelector('.form-input[data-col="lot"]');
+      if (firstInput) firstInput.focus();
+    }
+    
+    // ลบแถวย่อย
+    function deleteRow(elem) {
+      const row = elem.closest('tr');
+      if (row.classList.contains('sub-item')) {
+        row.remove();
+        
+        // ปรับ data-index ของแถวย่อยที่เหลือให้เรียงลำดับใหม่
+        const mainRow = row.dataset.mainRow;
+        const subItems = document.querySelectorAll(`tr.sub-item[data-main-row="${mainRow}"]`);
+        
+        subItems.forEach((item, index) => {
+          const inputs = item.querySelectorAll('.form-input');
+          inputs.forEach(input => {
+            input.dataset.index = index + 1;
+          });
+        });
+      }
+    }
+
+    // กรองแถว
+    function filterRows() {
+      const input = document.getElementById('rowSelector').value.trim();
+      // เปลี่ยนจากการแยกด้วยคอมม่าเป็นการแยกด้วยช่องว่าง
+      const indexes = input ? input.split(/\s+/).map(n => n.trim()) : [];
+      const rows = document.querySelectorAll('#packagingTable tbody tr');
+      
+      rows.forEach((row) => {
+        const rowSequence = row.dataset.sequence;
+        if (indexes.length === 0 || indexes.includes(rowSequence)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // รีเซ็ตตัวกรอง
+    function resetFilter() {
+      document.getElementById('rowSelector').value = '';
+      document.querySelectorAll('#packagingTable tbody tr').forEach(row => {
+        row.style.display = '';
+      });
+    }
+
+    // ส่งออกเป็น CSV
+    function exportTable() {
+      const rows = document.querySelectorAll('#packagingTable tbody tr');
+      
+      // เพิ่ม BOM เพื่อรองรับภาษาไทยใน Excel
+      let csv = '\uFEFF';
+      csv += 'ลำดับ,รหัส,หมวด,ชื่อ,Lot,จำนวน,หน่วยใช้,เลขที่บิล\n';
+      
+      rows.forEach(row => {
+        if (row.style.display === 'none') return;
+        const cells = row.querySelectorAll('td');
+        const data = [
+          cells[0].innerText,
+          cells[1].innerText,
+          cells[2].innerText,
+          cells[3].innerText,
+          cells[4].querySelector('input').value,
+          cells[5].querySelector('input').value,
+          cells[6].innerText,
+          cells[7].querySelector('input').value,
+        ];
+        // Escape แต่ละฟิลด์เพื่อจัดการกับ CSV อย่างถูกต้อง
+        const escapedData = data.map(field => {
+          // หากมีคอมม่าหรือเครื่องหมายอัญประกาศ หรือขึ้นบรรทัดใหม่ จะครอบด้วยเครื่องหมายอัญประกาศ
+          if (/[",\n\r]/.test(field)) {
+            return `"${field.replace(/"/g, '""')}"`;
+          }
+          return field;
+        });
+        csv += escapedData.join(',') + '\n';
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'packaging_data.csv');
+      link.click();
+    }
+    
+    // ตั้งค่าการกด Enter ให้เลื่อนลงในคอลัมน์เดียวกัน
+    function setupKeyEvents(container = document) {
+      const inputs = container.querySelectorAll('.form-input');
+      
+      inputs.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            
+            const currentCol = this.dataset.col;
+            const currentRow = this.dataset.row;
+            const currentIndex = parseInt(this.dataset.index);
+            
+            // หาอินพุตถัดไปในคอลัมน์เดียวกัน
+            let nextInput = document.querySelector(`.form-input[data-col="${currentCol}"][data-row="${currentRow}"][data-index="${currentIndex + 1}"]`);
+            
+            // ถ้าไม่มีแถวถัดไปในคอลัมน์นี้
+            if (!nextInput) {
+              // ไม่ต้องเพิ่มแถวอัตโนมัติแล้ว แม้จะเป็นคอลัมน์ Lot
+              
+              // หาแถวหลักถัดไป
+              const nextMainRow = parseInt(currentRow) + 1;
+              nextInput = document.querySelector(`.form-input[data-col="${currentCol}"][data-row="${nextMainRow}"][data-index="0"]`);
+              
+              // ถ้าไม่มีแถวหลักถัดไป จบการทำงาน
+              if (!nextInput) return;
+            }
+            
+            nextInput.focus();
+          }
+        });
+      });
+    }
+    
+    // ตั้งค่า keystroke events เมื่อหน้าเว็บโหลด
+    document.addEventListener('DOMContentLoaded', function() {
+      setupKeyEvents();
+    });
+    
+    // ตั้งค่า keystroke events สำหรับอินพุตที่มีอยู่
+    setupKeyEvents();
+  </script>
+</body>
+</html>
