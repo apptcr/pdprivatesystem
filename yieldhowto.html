@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คู่มือการใช้งาน YIELD CALCULATOR</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --success: #4cc9f0;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #f0f4f8;
+      --shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      --radius: 12px;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Prompt', 'Kanit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: var(--dark);
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin: 20px auto;
+    }
+    
+    .app-header {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      padding: 25px 20px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .app-title {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 5px;
+    }
+    
+    .app-subtitle {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+    
+    .content {
+      padding: 30px;
+    }
+    
+    .section {
+      margin-bottom: 25px;
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    .section-title {
+      color: var(--primary);
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--gray);
+    }
+    
+    .guide-text {
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+    
+    .steps {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .step {
+      margin-bottom: 10px;
+      position: relative;
+      padding-left: 28px;
+    }
+    
+    .step:before {
+      content: "\f00c";
+      font-family: "Font Awesome 5 Free";
+      font-weight: 900;
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+    
+    .result-indicator {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 8px 15px;
+      border-radius: 6px;
+      background-color: var(--gray);
+    }
+    
+    .indicator-color {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    
+    .color-green {
+      background-color: #4caf50;
+    }
+    
+    .color-orange {
+      background-color: #ff9800;
+    }
+    
+    .color-red {
+      background-color: #f44336;
+    }
+    
+    .tip-box {
+      background-color: rgba(76, 201, 240, 0.1);
+      border-left: 4px solid var(--success);
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+    
+    .tip-title {
+      color: var(--secondary);
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .tip-title i {
+      margin-right: 8px;
+    }
+    
+    .example {
+      background-color: var(--gray);
+      padding: 20px;
+      border-radius: var(--radius);
+      margin: 20px 0;
+    }
+    
+    .example-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--secondary);
+    }
+    
+    .calculator-icon {
+      background-color: var(--light);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 10px;
+      color: var(--primary);
+    }
+    
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--gray);
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 768px) {
+      .content {
+        padding: 20px;
+      }
+      
+      .app-title {
+        font-size: 1.5rem;
+      }
+      
+      .section-title {
+        font-size: 1.3rem;
+      }
+    }
+    
+    /* สไตล์สำหรับการแสดงภาพตัวอย่าง */
+    .image-example {
+      max-width: 100%;
+      border: 1px solid #e0e0e0;
+      border-radius: var(--radius);
+      margin: 15px 0;
+      box-shadow: var(--shadow);
+    }
+    
+    .calculation-box {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    
+    .calculation-result {
+      font-weight: 600;
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="app-header">
+      <h1 class="app-title">คู่มือการใช้งาน YIELD CALCULATOR</h1>
+      <p class="app-subtitle">เรียนรู้วิธีคำนวณผลผลิตอย่างง่าย และรวดเร็ว</p>
+    </div>
+    
+    <div class="content">
+      <div class="section">
+        <h2 class="section-title">วัตถุประสงค์</h2>
+        <p class="guide-text">
+          YIELD CALCULATOR เป็นเครื่องมือออนไลน์ที่ออกแบบมาเพื่อช่วยให้คุณคำนวณผลผลิตและวัตถุดิบได้อย่างรวดเร็วและง่ายดาย เหมาะสำหรับผู้ประกอบการด้านอาหาร เกษตรกร หรือผู้ที่ต้องการคำนวณอัตราผลผลิตในกระบวนการผลิตต่างๆ
+        </p>
+      </div>
+      
+      <div class="section">
+        <h2 class="section-title">วิธีการใช้งาน</h2>
+        
+        <h3 style="color: var(--secondary); margin: 15px 0 10px;"><i class="fas fa-keyboard"></i> 1. การกรอกข้อมูล</h3>
+        <div class="steps">
+          <div class="step">
+            <strong>ผลิตได้ (kg)</strong> - ใส่ปริมาณผลผลิตที่ได้รับหลังจากกระบวนการผลิตเสร็จสิ้น เช่น น้ำหนักของอาหารที่ปรุงเสร็จแล้ว
+          </div>
+          <div class="step">
+            <strong>วัตถุดิบ (kg)</strong> - ใส่ปริมาณวัตถุดิบทั้งหมดที่ใช้ในการผลิต เช่น น้ำหนักวัตถุดิบก่อนปรุง
+          </div>
+        </div>
+        
+        <h3 style="color: var(--secondary); margin: 15px 0 10px;"><i class="fas fa-calculator"></i> 2. การคำนวณ</h3>
+        <div class="steps">
+          <div class="step">
+            เมื่อกรอกข้อมูลเสร็จแล้ว กดปุ่ม Enter เพื่อคำนวณผล
+          </div>
+          <div class="step">
+            ระบบจะคำนวณให้อัตโนมัติและแสดงผลลัพธ์ใน 2 ช่องถัดไป:
+            <ul style="margin: 10px 0 10px 20px;">
+              <li><strong>ส่วนต่าง</strong> - แสดงความแตกต่างระหว่างวัตถุดิบและผลผลิต (วัตถุดิบ - ผลผลิต)</li>
+              <li><strong>เปอร์เซ็นต์</strong> - แสดงอัตราส่วนผลผลิตเป็นเปอร์เซ็นต์ (ผลผลิต ÷ วัตถุดิบ × 100)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <h3 style="color: var(--secondary); margin: 15px 0 10px;"><i class="fas fa-chart-pie"></i> 3. การอ่านผลลัพธ์</h3>
+        <div>
+          <div class="result-indicator">
+            <div class="indicator-color color-green"></div>
+            <div><strong>เปอร์เซ็นต์สีเขียว</strong> (≥90%) หมายถึง ผลผลิตอยู่ในเกณฑ์ดี</div>
+          </div>
+          <div class="result-indicator">
+            <div class="indicator-color color-orange"></div>
+            <div><strong>เปอร์เซ็นต์สีส้ม</strong> (80-89%) หมายถึง ผลผลิตอยู่ในเกณฑ์ปานกลาง</div>
+          </div>
+          <div class="result-indicator">
+            <div class="indicator-color color-red"></div>
+            <div><strong>เปอร์เซ็นต์สีแดง</strong> (&lt;80%) หมายถึง ผลผลิตอยู่ในเกณฑ์ต่ำ ควรตรวจสอบกระบวนการผลิต</div>
+          </div>
+        </div>
+        
+        <h3 style="color: var(--secondary); margin: 15px 0 10px;"><i class="fas fa-magic"></i> 4. คุณสมบัติพิเศษ - การคำนวณด้วยสูตร</h3>
+        <div class="guide-text">
+          คุณสามารถใช้การคำนวณทางคณิตศาสตร์ในช่องได้โดยตรง เช่น:
+        </div>
+        
+        <div class="calculation-box">
+          <div>พิมพ์ <code>2*3</code> และกด Enter จะได้ผลลัพธ์ <span class="calculation-result">6.00</span></div>
+          <div>พิมพ์ <code>5+10</code> และกด Enter จะได้ผลลัพธ์ <span class="calculation-result">15.00</span></div>
+          <div>พิมพ์ <code>20-5</code> และกด Enter จะได้ผลลัพธ์ <span class="calculation-result">15.00</span></div>
+        </div>
+        
+        <div class="guide-text" style="display: flex; align-items: center; margin-top: 15px;">
+          <div class="calculator-icon"><i class="fas fa-calculator"></i></div>
+          เมื่อใช้การคูณ จะปรากฏไอคอนเครื่องคิดเลข ที่สามารถคลิกเพื่อดูรายละเอียดการคำนวณได้
+        </div>
+        
+        <h3 style="color: var(--secondary); margin: 15px 0 10px;"><i class="fas fa-table"></i> 5. การจัดการข้อมูล</h3>
+        <div class="steps">
+          <div class="step">
+            <strong>เพิ่มแถว</strong> - คลิกปุ่ม "เพิ่มแถว" เพื่อเพิ่มรายการคำนวณใหม่
+          </div>
+          <div class="step">
+            <strong>รีเซต</strong> - คลิกปุ่ม "รีเซต" เพื่อล้างข้อมูลทั้งหมดและเริ่มใหม่ โดยระบบจะสร้างตารางเริ่มต้นให้ 10 แถว
+          </div>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2 class="section-title">ตัวอย่างการใช้งาน</h2>
+        <div class="example">
+          <h3 class="example-title"><i class="fas fa-utensils"></i> กรณีศึกษา: การคำนวณผลผลิตในการทำอาหาร</h3>
+          <ol style="margin-left: 20px; line-height: 1.6;">
+            <li>สมมติว่าคุณมีวัตถุดิบน้ำหนัก 10 กิโลกรัม และหลังจากปรุงแล้วได้ผลผลิต 8.5 กิโลกรัม</li>
+            <li>กรอก "8.5" ในช่อง "ผลิตได้" และ "10" ในช่อง "วัตถุดิบ" แล้วกด Enter</li>
+            <li>ระบบจะคำนวณและแสดงผล:
+              <ul style="margin: 5px 0 5px 20px;">
+                <li><strong>ส่วนต่าง:</strong> 1.50 kg.</li>
+                <li><strong>เปอร์เซ็นต์:</strong> <span style="color:#ff9800;font-weight:bold">85.00%</span> (แสดงเป็นสีส้ม เนื่องจากอยู่ในเกณฑ์ปานกลาง)</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </div>
+      
+      <div class="section">
+        <div class="tip-box">
+          <div class="tip-title">
+            <i class="fas fa-lightbulb"></i> เคล็ดลับการใช้งาน
+          </div>
+          <ul style="margin-left: 25px; line-height: 1.6;">
+            <li>สามารถคำนวณหลายรายการพร้อมกันได้ โดยแต่ละแถวเป็นอิสระต่อกัน</li>
+            <li>เมื่อกด Enter หลังจากกรอกข้อมูลในช่อง "ผลิตได้" เคอร์เซอร์จะเลื่อนไปยังช่อง "วัตถุดิบ" โดยอัตโนมัติ</li>
+            <li>เมื่อกด Enter หลังจากกรอกข้อมูลในช่อง "วัตถุดิบ" เคอร์เซอร์จะเลื่อนไปยังแถวถัดไปโดยอัตโนมัติ ทำให้การกรอกข้อมูลหลายรายการทำได้รวดเร็ว</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="section">
+        <p class="guide-text">
+          YIELD CALCULATOR จะช่วยให้คุณตรวจสอบและควบคุมคุณภาพในกระบวนการผลิต ทำให้สามารถประเมินประสิทธิภาพได้อย่างแม่นยำและรวดเร็ว
+        </p>
+      </div>
+      
+      <div class="footer">
+        © 2025 YIELD FAST CALCULATOR by NAMJIT
+      </div>
+    </div>
+  </div>
+</body>
+</html>
