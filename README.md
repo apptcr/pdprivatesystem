@@ -1,5 +1,3 @@
-# pdprivatesystem
-
 # Production Private System
 
 ![Logo](logo-light.png)
