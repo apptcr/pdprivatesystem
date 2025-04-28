@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบคำนวณเทียบบัญญัติไตรยางค์</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --light-green: #bbf7d0;
+            --light-yellow: #fef08a;
+            --light-orange: #fed7aa;
+            --light-red: #fecaca;
+            --dark-red: #dc2626;
+            --blue: #2563eb;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', 'Kanit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            padding: 10px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #1e293b;
+            font-size: 24px;
+        }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .time-input-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background-color: var(--light-green);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .result-card {
+            background-color: var(--light-orange);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .weight-table-container {
+            margin-bottom: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+        
+        th, td {
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+        }
+        
+        .header-cell {
+            background-color: var(--light-green);
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .time-header {
+            background-color: var(--light-yellow);
+        }
+        
+        .total-header {
+            background-color: #fad7bd;
+        }
+        
+        .weight-header {
+            background-color: #fad7bd;
+        }
+        
+        .calculation-header {
+            background-color: var(--light-red);
+        }
+        
+        .item-cell {
+            background-color: #dbeafe;
+        }
+        
+        .time-cell {
+            background-color: var(--light-yellow);
+        }
+        
+        .weight-input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .reset-button {
+            background-color: var(--dark-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .reset-button:hover {
+            background-color: #b91c1c;
+        }
+        
+        .time-input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            text-align: center;
+            background-color: white;
+        }
+        
+        .total-row {
+            background-color: #bfdbfe;
+            font-weight: 600;
+        }
+        
+        .total-value {
+            background-color: var(--dark-red);
+            color: white;
+            font-weight: 600;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .result-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .result-table th {
+            background-color: var(--dark-red);
+            color: white;
+            padding: 6px;
+        }
+        
+        .result-table td {
+            padding: 6px;
+            text-align: center;
+        }
+        
+        .result-item {
+            background-color: #dbeafe;
+        }
+        
+        .time-result {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .alert {
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            color: #fff;
+            background-color: #f43f5e;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .section-title {
+            margin-bottom: 6px;
+            color: #1e293b;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 3px;
+            font-size: 16px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        
+        .compact-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 992px) {
+            .compact-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .lunch-break-note {
+            color: var(--dark-red);
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ระบบคำนวณเทียบบัญญัติไตรยางค์</h1>
+        
+        <div id="errorAlert" class="alert hidden"></div>
+        
+        <div class="main-content">
+            <div class="grid-container">
+                <div class="time-input-card">
+                    <div>
+                        <label>เวลาเริ่ม</label>
+                        <input type="time" id="startTime" class="time-input" value="08:00" required>
+                    </div>
+                    <div>
+                        <label>เวลาจบ</label>
+                        <input type="time" id="endTime" class="time-input" value="17:00" required>
+                        <div class="lunch-break-note">*ไม่รวมช่วงพักเที่ยง 12:00-13:00</div>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label>รวมทั้งหมด</label>
+                            <div id="totalTime" style="text-align: center; font-weight: 600;">0:00</div>
+                        </div>
+                        <div>
+                            <label>นาทีทั้งหมด</label>
+                            <div id="totalMinutes" class="total-value">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <button id="resetButton" class="reset-button">ล้างข้อมูลทั้งหมด</button>
+            </div>
+            
+            <div class="compact-layout">
+                <div class="weight-table-container">
+                    <h3 class="section-title">น้ำหนัก (กก.) / ชิ้น</h3>
+                    <table id="weightTable">
+                        <thead>
+                            <tr>
+                                <th width="33%">ลำดับ</th>
+                                <th width="33%">น้ำหนัก</th>
+                                <th width="33%">หน่วย</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- จะถูกเพิ่มโดย JavaScript -->
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td>รวม</td>
+                                <td id="totalWeight">0</td>
+                                <td>กก.</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <h3 class="section-title">สรุปเวลาที่ใช้ต่อผลิตภัณฑ์</h3>
+                    <table id="resultTable" class="result-table">
+                        <thead>
+                            <tr>
+                                <th width="33%">ลำดับ</th>
+                                <th width="33%">เวลาเริ่มงาน</th>
+                                <th width="33%">เวลาจบงาน</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- จะถูกเพิ่มโดย JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ตัวแปรหลัก
+            const startTimeInput = document.getElementById('startTime');
+            const endTimeInput = document.getElementById('endTime');
+            const totalTimeDiv = document.getElementById('totalTime');
+            const totalMinutesDiv = document.getElementById('totalMinutes');
+            const weightTableBody = document.querySelector('#weightTable tbody');
+            const resultTableBody = document.querySelector('#resultTable tbody');
+            const totalWeightSpan = document.getElementById('totalWeight');
+            const errorAlert = document.getElementById('errorAlert');
+            const resetButton = document.getElementById('resetButton');
+            
+            const totalItems = 10; // จำนวนชิ้นตามที่กำหนด
+            
+            // สร้างตารางน้ำหนัก
+            for (let i = 1; i <= totalItems; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="item-cell">ชิ้นที่ ${i}</td>
+                    <td><input type="text" class="weight-input" id="weight-${i}" placeholder="0" value="0"></td>
+                    <td>กก.</td>
+                `;
+                weightTableBody.appendChild(row);
+            }
+            
+            // สร้างตารางผลลัพธ์
+            for (let i = 1; i <= totalItems; i++) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="result-item">ชิ้นที่ ${i}</td>
+                    <td id="start-time-${i}" class="time-result">0</td>
+                    <td id="end-time-${i}" class="time-result">0</td>
+                `;
+                resultTableBody.appendChild(row);
+            }
+            
+            // ติดตามการเปลี่ยนแปลงในทุกช่องข้อมูล
+            startTimeInput.addEventListener('input', updateCalculations);
+            endTimeInput.addEventListener('input', updateCalculations);
+            
+            // ติดตามการเปลี่ยนแปลงน้ำหนักและการกด Enter
+            document.querySelectorAll('.weight-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    // เมื่อพิมพ์เสร็จแล้วค่อยคำนวณ
+                    clearTimeout(this.typingTimer);
+                    this.typingTimer = setTimeout(calculateWeight, 500, this);
+                });
+                
+                input.addEventListener('keypress', function(e) {
+                    // เมื่อกด Enter
+                    if (e.key === 'Enter') {
+                        calculateWeight(this);
+                        updateCalculations();
+                        
+                        // เลือกช่องถัดไป
+                        const currentId = this.id;
+                        const currentNumber = parseInt(currentId.split('-')[1]);
+                        if (currentNumber < totalItems) {
+                            const nextInput = document.getElementById(`weight-${currentNumber + 1}`);
+                            if (nextInput) {
+                                nextInput.focus();
+                                nextInput.select();
+                            }
+                        }
+                    }
+                });
+            });
+
+            // เพิ่มฟังก์ชันรีเซ็ตข้อมูล
+            resetButton.addEventListener('click', function() {
+                // รีเซ็ตค่าน้ำหนัก
+                document.querySelectorAll('.weight-input').forEach(input => {
+                    input.value = '0';
+                });
+                
+                // รีเซ็ตผลลัพธ์เวลา
+                for (let i = 1; i <= totalItems; i++) {
+                    document.getElementById(`start-time-${i}`).textContent = '0';
+                    document.getElementById(`end-time-${i}`).textContent = '0';
+                }
+                
+                // รีเซ็ตค่ารวม
+                totalWeightSpan.textContent = '0';
+                totalTimeDiv.textContent = '0:00';
+                totalMinutesDiv.textContent = '0';
+                
+                // ซ่อนข้อผิดพลาด
+                errorAlert.classList.add('hidden');
+            });
+            
+            // คำนวณค่าน้ำหนักทันทีสำหรับช่องที่กำลังแก้ไข
+            function calculateWeight(input) {
+                try {
+                    if (input.value.trim() === '') {
+                        input.value = '0';
+                        return;
+                    }
+                    
+                    // ใช้ Function constructor สำหรับประเมินนิพจน์ทางคณิตศาสตร์
+                    const weightValue = new Function('return ' + input.value)();
+                    
+                    if (isNaN(weightValue) || weightValue < 0) {
+                        showError(`น้ำหนักไม่ถูกต้อง`);
+                        return;
+                    }
+                    
+                    // แสดงผลลัพธ์การคำนวณทันที
+                    input.value = weightValue;
+                    updateCalculations();
+                } catch (e) {
+                    showError(`สูตรคำนวณไม่ถูกต้อง`);
+                }
+            }
+            
+            function updateCalculations() {
+                errorAlert.classList.add('hidden');
+                
+                if (!startTimeInput.value || !endTimeInput.value) {
+                    return;
+                }
+                
+                try {
+                    // คำนวณเวลาทั้งหมด
+                    const startTime = new Date(`2000-01-01T${startTimeInput.value}`);
+                    let endTime = new Date(`2000-01-01T${endTimeInput.value}`);
+                    
+                    // ถ้าเวลาสิ้นสุดน้อยกว่าเวลาเริ่ม ให้เพิ่ม 1 วัน
+                    if (endTime < startTime) {
+                        endTime.setDate(endTime.getDate() + 1);
+                    }
+                    
+                    // กำหนดเวลาพักเที่ยง (12:00-13:00)
+                    const lunchBreakStart = new Date(`2000-01-01T12:00:00`);
+                    const lunchBreakEnd = new Date(`2000-01-01T13:00:00`);
+                    const lunchBreakDuration = 60 * 60 * 1000; // 60 นาทีในมิลลิวินาที
+                    
+                    let totalTimeWithoutLunch = 0;
+                    
+                    // คำนวณเวลาทั้งหมดโดยไม่รวมช่วงพักเที่ยง
+                    if (startTime <= lunchBreakStart && endTime >= lunchBreakEnd) {
+                        // เริ่มก่อนพักเที่ยงและจบหลังพักเที่ยง
+                        totalTimeWithoutLunch = (endTime - startTime) - lunchBreakDuration;
+                    } else if (startTime <= lunchBreakStart && endTime > lunchBreakStart && endTime <= lunchBreakEnd) {
+                        // เริ่มก่อนพักเที่ยงและจบระหว่างพักเที่ยง
+                        totalTimeWithoutLunch = lunchBreakStart - startTime;
+                    } else if (startTime >= lunchBreakStart && startTime < lunchBreakEnd && endTime >= lunchBreakEnd) {
+                        // เริ่มระหว่างพักเที่ยงและจบหลังพักเที่ยง
+                        totalTimeWithoutLunch = endTime - lunchBreakEnd;
+                    } else if (startTime >= lunchBreakStart && endTime <= lunchBreakEnd) {
+                        // เริ่มและจบระหว่างพักเที่ยง (ไม่มีเวลาทำงาน)
+                        totalTimeWithoutLunch = 0;
+                    } else {
+                        // ไม่มีการทับซ้อนกับช่วงพักเที่ยง
+                        totalTimeWithoutLunch = endTime - startTime;
+                    }
+                    
+                    // คำนวณนาทีจากมิลลิวินาที และใช้ Math.floor เพื่อปัดเศษนาทีลง
+                    const totalMinutes = Math.floor(totalTimeWithoutLunch / (1000 * 60));
+                    const diffHrs = Math.floor(totalMinutes / 60);
+                    const diffMins = totalMinutes % 60;
+                    
+                    totalTimeDiv.textContent = `${diffHrs}:${diffMins.toString().padStart(2, '0')}`;
+                    totalMinutesDiv.textContent = totalMinutes;
+                    
+                    // เก็บค่าน้ำหนักแต่ละชิ้น
+                    const weights = [];
+                    let totalWeight = 0;
+                    
+                    // ดึงค่าน้ำหนักและคำนวณ
+                    for (let i = 1; i <= totalItems; i++) {
+                        const weightInput = document.getElementById(`weight-${i}`);
+                        
+                        if (weightInput.value.trim() === '') {
+                            weights.push(0);
+                            continue;
+                        }
+                        
+                        try {
+                            // แปลงเป็นตัวเลข
+                            const weightValue = parseFloat(weightInput.value);
+                            
+                            if (isNaN(weightValue) || weightValue < 0) {
+                                showError(`น้ำหนักชิ้นที่ ${i} ไม่ถูกต้อง`);
+                                return;
+                            }
+                            
+                            weights.push(weightValue);
+                            totalWeight += weightValue;
+                        } catch (e) {
+                            showError(`ค่าน้ำหนักของชิ้นที่ ${i} ไม่ถูกต้อง`);
+                            return;
+                        }
+                    }
+                    
+                    totalWeightSpan.textContent = totalWeight.toFixed(2);
+                    
+                    // ป้องกันการหารด้วย 0
+                    if (totalWeight === 0 || totalMinutes === 0) {
+                        // ล้างค่าเวลาทั้งหมด
+                        for (let i = 1; i <= totalItems; i++) {
+                            document.getElementById(`start-time-${i}`).textContent = '0';
+                            document.getElementById(`end-time-${i}`).textContent = '0';
+                        }
+                        
+                        return;
+                    }
+                    
+                    // สร้างช่วงเวลาทำงานที่ไม่รวมพักเที่ยง
+                    let workTimes = [];
+                    
+                    if (startTime < lunchBreakStart) {
+                        // ช่วงเวลาก่อนพักเที่ยง
+                        let beforeLunchEnd = endTime < lunchBreakStart ? endTime : lunchBreakStart;
+                        workTimes.push({
+                            start: startTime,
+                            end: beforeLunchEnd
+                        });
+                    }
+                    
+                    if (endTime > lunchBreakEnd) {
+                        // ช่วงเวลาหลังพักเที่ยง
+                        let afterLunchStart = startTime > lunchBreakEnd ? startTime : lunchBreakEnd;
+                        workTimes.push({
+                            start: afterLunchStart,
+                            end: endTime
+                        });
+                    } else if (startTime >= lunchBreakEnd) {
+                        // เริ่มหลังพักเที่ยง
+                        workTimes.push({
+                            start: startTime,
+                            end: endTime
+                        });
+                    }
+                    
+                    // ถ้าไม่มีช่วงเวลาที่คำนวณได้ (เช่น ทำงานแต่ในช่วงพักเที่ยง)
+                    if (workTimes.length === 0) {
+                        for (let i = 1; i <= totalItems; i++) {
+                            document.getElementById(`start-time-${i}`).textContent = '0';
+                            document.getElementById(`end-time-${i}`).textContent = '0';
+                        }
+                        return;
+                    }
+                    
+                    // คำนวณเวลาต่อชิ้นตามสัดส่วนน้ำหนัก
+                    let currentTimeIndex = 0;
+                    let currentTime = new Date(workTimes[0].start);
+                    
+                    for (let i = 0; i < weights.length; i++) {
+                        const startTimeCell = document.getElementById(`start-time-${i+1}`);
+                        const endTimeCell = document.getElementById(`end-time-${i+1}`);
+                        
+                        if (weights[i] === 0) {
+                            startTimeCell.textContent = '0';
+                            endTimeCell.textContent = '0';
+                            continue;
+                        }
+                        
+                        const itemStartTime = new Date(currentTime);
+                        const weightRatio = weights[i] / totalWeight;
+                        const itemMinutes = totalMinutes * weightRatio;
+                        let timeToAdd = itemMinutes * 60 * 1000;
+                        
+                        // คำนวณเวลาสิ้นสุด
+                        let itemEndTime = new Date(currentTime.getTime() + timeToAdd);
+                        
+                        // ตรวจสอบว่าเกินช่วงเวลาทำงานปัจจุบันหรือไม่
+                        if (itemEndTime > workTimes[currentTimeIndex].end && currentTimeIndex < workTimes.length - 1) {
+                            // คำนวณเวลาที่เหลือในช่วงเวลาปัจจุบัน
+                            const timeUsedInCurrentPeriod = workTimes[currentTimeIndex].end - currentTime;
+                            timeToAdd -= timeUsedInCurrentPeriod;
+                            
+                            // ย้ายไปช่วงเวลาถัดไป
+                            currentTimeIndex++;
+                            currentTime = new Date(workTimes[currentTimeIndex].start);
+                            
+                            // เพิ่มเวลาที่เหลือ
+                            itemEndTime = new Date(currentTime.getTime() + timeToAdd);
+                        }
+                        
+                        // อัปเดตเวลาปัจจุบันสำหรับงานถัดไป
+                        currentTime = new Date(itemEndTime);
+                        
+                        // แสดงเวลาเริ่มและสิ้นสุด
+                        if (weights[i] > 0) {
+                            startTimeCell.textContent = formatTime(itemStartTime);
+                            endTimeCell.textContent = formatTime(itemEndTime);
+                        } else {
+                            startTimeCell.textContent = '0';
+                            endTimeCell.textContent = '0';
+                        }
+                    }
+                    
+                } catch (e) {
+                    showError('เกิดข้อผิดพลาดในการคำนวณ');
+                    console.error(e);
+                }
+            }
+            
+            function formatTime(date) {
+                return date.toTimeString().substring(0, 5);
+            }
+            
+            function showError(message) {
+                errorAlert.textContent = message;
+                errorAlert.classList.remove('hidden');
+            }
+            
+            // เรียกฟังก์ชันคำนวณครั้งแรกเมื่อโหลดหน้า
+            updateCalculations();
+        });
+    </script>
+</body>
+</html>
