@@ -146,7 +146,7 @@
       background: white;
       border-radius: 6px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000; /* เพิ่ม z-index ให้มีค่าสูง */
+      z-index: 1000;
       text-align: left;
       padding: 10px 0;
     }
@@ -164,10 +164,23 @@
       padding: 8px 15px;
       color: var(--dark);
       font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s ease;
     }
     
     .dropdown-item:hover {
       background: #f5f7fa;
+    }
+    
+    .dropdown-item.edit-item {
+      color: var(--primary);
+      font-weight: 500;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 5px;
+    }
+    
+    .dropdown-item.edit-item:hover {
+      background: rgba(67, 97, 238, 0.1);
     }
     
     .calculated-cell {
@@ -264,7 +277,6 @@
       animation: fadeIn 0.3s ease-out forwards;
     }
     
-    /* เพิ่มคลาสใหม่สำหรับ dropdown ที่กำลังแสดง */
     .dropdown-fixed {
       position: fixed;
       background: white;
@@ -272,9 +284,15 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
       z-index: 1000;
       padding: 10px 0;
-      min-width: 180px;
+      min-width: 200px;
       max-width: 300px;
       text-align: left;
+    }
+
+    .input-edit-mode {
+      border-color: #ff9800 !important;
+      box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2) !important;
+      background-color: #fffbf0;
     }
   </style>
 </head>
@@ -282,7 +300,7 @@
   <div class="container">
     <div class="app-header">
       <h1 class="app-title">YIELD CALCULATOR</h1>
-      <p class="app-subtitle">คำนวณผลผลิตอย่างง่าย และรวดเร็ว</p>
+      <p class="app-subtitle">คำนวณผลผลิตจากรายงานอย่างง่าย และรวดเร็ว</p>
     </div>
     
     <div class="content">
@@ -307,9 +325,9 @@
         <button class="btn-reset" onclick="resetTable()">
           <i class="fas fa-sync-alt"></i> รีเซต
         </button>
-	<button class="btn-howto" onclick="window.open('yieldhowto.html')">
-	  <i class="fas fa-book"></i> คู่มือการใช้งาน
-	</button>
+        <button class="btn-howto" onclick="window.open('yieldhowto.html')">
+          <i class="fas fa-book"></i> คู่มือการใช้งาน
+        </button>
       </div>
       
       <div class="footer">
@@ -318,7 +336,6 @@
     </div>
   </div>
 
-  <!-- เพิ่ม element ใหม่สำหรับแสดง dropdown เป็น fixed position -->
   <div id="fixedDropdown" class="dropdown-fixed" style="display: none;"></div>
 
   <script>
@@ -326,6 +343,7 @@
     const inputRefs = [];
     const fixedDropdown = document.getElementById("fixedDropdown");
     let activeDropdownToggle = null;
+    let currentInputData = new Map(); // เก็บข้อมูลเดิมและการคำนวณ
 
     function createInputCell(onEnter) {
       const cell = document.createElement("td");
@@ -352,36 +370,39 @@
       dropdownToggle.addEventListener("click", function(e) {
         e.stopPropagation();
         
-        // ปิด dropdown ที่กำลังเปิดอยู่ถ้าคลิกปุ่มเดิม
         if (activeDropdownToggle === dropdownToggle && fixedDropdown.style.display === "block") {
           fixedDropdown.style.display = "none";
           activeDropdownToggle = null;
           return;
         }
         
-        // เก็บ reference ของปุ่มที่กำลังใช้งาน
         activeDropdownToggle = dropdownToggle;
         
-        // คำนวณตำแหน่งของ dropdown
         const rect = dropdownToggle.getBoundingClientRect();
         fixedDropdown.style.top = rect.bottom + "px";
         
-        // ตรวจสอบว่าควรแสดงทางซ้ายหรือขวา
         const rightEdge = rect.right;
         const windowWidth = window.innerWidth;
-        if (rightEdge + 180 > windowWidth) {
-          // แสดงทางซ้ายของปุ่ม
+        if (rightEdge + 200 > windowWidth) {
           fixedDropdown.style.right = (windowWidth - rect.left) + "px";
           fixedDropdown.style.left = "auto";
         } else {
-          // แสดงทางขวาของปุ่ม
           fixedDropdown.style.left = rect.left + "px";
           fixedDropdown.style.right = "auto";
         }
         
-        // คัดลอกเนื้อหาไปยัง fixed dropdown
         fixedDropdown.innerHTML = dropdownContent.innerHTML;
         fixedDropdown.style.display = "block";
+        
+        // Add event listeners to dropdown items in fixed dropdown
+        const editItem = fixedDropdown.querySelector('.edit-item');
+        if (editItem) {
+          editItem.addEventListener('click', function() {
+            editInputValue(input);
+            fixedDropdown.style.display = "none";
+            activeDropdownToggle = null;
+          });
+        }
       });
 
       return { 
@@ -393,35 +414,43 @@
           input.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
               try {
-                // Store the original expression
-                const originalExpression = input.value;
+                const originalExpression = input.value.trim();
                 
-                // Calculate the result
+                // ถ้าเป็นสตริงว่างให้ clear ข้อมูล
+                if (originalExpression === "") {
+                  input.value = "";
+                  dropdownToggle.style.display = "none";
+                  currentInputData.delete(input);
+                  onEnter();
+                  return;
+                }
+                
+                // ถ้าเป็นตัวเลขธรรมดา
+                if (/^\d+(\.\d+)?$/.test(originalExpression)) {
+                  input.value = parseFloat(originalExpression).toFixed(2);
+                  dropdownToggle.style.display = "none";
+                  currentInputData.delete(input);
+                  onEnter();
+                  return;
+                }
+                
+                // คำนวณผลลัพธ์
                 const result = eval(originalExpression);
-                
-                // แสดงผลลัพธ์เป็นทศนิยม 2 ตำแหน่ง
                 input.value = parseFloat(result).toFixed(2);
                 
-                // Parse for multiplication operations
-                const multiplications = parseMultiplications(originalExpression);
+                // Parse operations
+                const operations = parseAllOperations(originalExpression);
                 
-                // Show dropdown toggle if we found multiplications
-                if (multiplications.length > 0) {
-                  // Create dropdown content
-                  dropdownContent.innerHTML = '';
-                  
-                  const header = document.createElement("div");
-                  header.className = "dropdown-header";
-                  header.textContent = "รายละเอียดการคำนวณ";
-                  dropdownContent.appendChild(header);
-                  
-                  multiplications.forEach(item => {
-                    const itemElement = document.createElement("div");
-                    itemElement.className = "dropdown-item";
-                    itemElement.textContent = item;
-                    dropdownContent.appendChild(itemElement);
-                  });
-                  
+                // เก็บข้อมูลเดิมและการคำนวณ
+                currentInputData.set(input, {
+                  originalExpression: originalExpression,
+                  result: result,
+                  operations: operations
+                });
+                
+                // Show dropdown toggle if we found operations
+                if (operations.length > 0) {
+                  createDropdownContent(dropdownContent, operations, originalExpression, result);
                   dropdownToggle.style.display = "block";
                 } else {
                   dropdownToggle.style.display = "none";
@@ -431,29 +460,88 @@
               } catch (err) {
                 input.value = "ERROR";
                 dropdownToggle.style.display = "none";
+                currentInputData.delete(input);
               }
             }
+          });
+
+          // Add input event for real-time validation
+          input.addEventListener("input", function() {
+            // Remove edit mode styling when user starts typing
+            input.classList.remove("input-edit-mode");
           });
         }
       };
     }
 
-    function parseMultiplications(expression) {
+    function parseAllOperations(expression) {
       // Remove spaces
       expression = expression.replace(/\s+/g, '');
       
-      // Match patterns like: number*number
-      const multiplicationPattern = /(\d+(?:\.\d+)?)\s*\*\s*(\d+(?:\.\d+)?)/g;
-      const matches = [];
-      let match;
+      const operations = [];
       
-      // Find all multiplication operations
-      while ((match = multiplicationPattern.exec(expression)) !== null) {
-        const result = parseFloat(match[1]) * parseFloat(match[2]);
-        matches.push(`${match[1]} × ${match[2]} = ${result.toFixed(2)}`);
+      // Match different types of operations
+      const patterns = [
+        { regex: /(\d+(?:\.\d+)?)\s*\*\s*(\d+(?:\.\d+)?)/g, symbol: '×', operation: (a, b) => a * b },
+        { regex: /(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/g, symbol: '÷', operation: (a, b) => a / b },
+        { regex: /(\d+(?:\.\d+)?)\s*\+\s*(\d+(?:\.\d+)?)/g, symbol: '+', operation: (a, b) => a + b },
+        { regex: /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/g, symbol: '-', operation: (a, b) => a - b }
+      ];
+      
+      patterns.forEach(pattern => {
+        let match;
+        const regex = new RegExp(pattern.regex.source, 'g');
+        
+        while ((match = regex.exec(expression)) !== null) {
+          const num1 = parseFloat(match[1]);
+          const num2 = parseFloat(match[2]);
+          const result = pattern.operation(num1, num2);
+          operations.push(`${match[1]} ${pattern.symbol} ${match[2]} = ${result.toFixed(2)}`);
+        }
+      });
+      
+      return operations;
+    }
+
+    function createDropdownContent(dropdownContent, operations, originalExpression, result) {
+      dropdownContent.innerHTML = '';
+      
+      const header = document.createElement("div");
+      header.className = "dropdown-header";
+      header.textContent = "รายละเอียดการคำนวณ";
+      dropdownContent.appendChild(header);
+      
+      operations.forEach(operation => {
+        const itemElement = document.createElement("div");
+        itemElement.className = "dropdown-item";
+        itemElement.textContent = operation;
+        dropdownContent.appendChild(itemElement);
+      });
+      
+      // Add total result
+      const totalElement = document.createElement("div");
+      totalElement.className = "dropdown-item";
+      totalElement.style.fontWeight = "600";
+      totalElement.style.borderTop = "1px solid #f0f0f0";
+      totalElement.style.marginTop = "5px";
+      totalElement.textContent = `ผลลัพธ์รวม = ${result.toFixed(2)}`;
+      dropdownContent.appendChild(totalElement);
+      
+      // Add edit option
+      const editElement = document.createElement("div");
+      editElement.className = "dropdown-item edit-item";
+      editElement.innerHTML = '<i class="fas fa-edit"></i> แก้ไขการคำนวณ';
+      dropdownContent.appendChild(editElement);
+    }
+
+    function editInputValue(input) {
+      const data = currentInputData.get(input);
+      if (data) {
+        input.value = data.originalExpression;
+        input.classList.add("input-edit-mode");
+        input.focus();
+        input.select();
       }
-      
-      return matches;
     }
 
     function addRow() {
@@ -499,13 +587,12 @@
           gapCell.textContent = `${gap.toFixed(2)} kg.`;
           percentCell.textContent = `${percent.toFixed(2)}%`;
           
-          // Add color indication based on percentage
           if (percent >= 90) {
-            percentCell.style.color = "#4caf50"; // Green for good yield
+            percentCell.style.color = "#4caf50";
           } else if (percent >= 80) {
-            percentCell.style.color = "#ff9800"; // Orange for moderate yield
+            percentCell.style.color = "#ff9800";
           } else {
-            percentCell.style.color = "#f44336"; // Red for poor yield
+            percentCell.style.color = "#f44336";
           }
         } else {
           gapCell.textContent = "";
@@ -519,10 +606,11 @@
         table.deleteRow(0);
       }
       inputRefs.length = 0;
+      currentInputData.clear();
       for (let i = 0; i < 10; i++) addRow();
     }
 
-    // ปิด dropdown เมื่อคลิกที่อื่น
+    // Close dropdown when clicking elsewhere
     document.addEventListener("click", function(e) {
       if (fixedDropdown.style.display === "block" && !e.target.closest(".dropdown-toggle")) {
         fixedDropdown.style.display = "none";
