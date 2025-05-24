@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการ Stock WIP โซนพริกไทย</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Prompt', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FFFFDD;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+.header {
+    background: linear-gradient(135deg, #74c0fc, #f783ac);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .month-selector {
+            background: white;
+            padding: 20px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .month-selector label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .month-selector select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            min-width: 150px;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .form-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66, #40c057);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(64, 192, 87, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #fa5252);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #339af0, #228be6);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(51, 154, 240, 0.4);
+        }
+
+        .stock-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stock-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #ff6b6b;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stock-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .stock-balance {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 10px 0;
+        }
+
+        .transaction-list {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .transaction-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .transaction-table th {
+            background: linear-gradient(135deg, #ff6b6b, #ffa500);
+            color: white;
+            font-weight: bold;
+        }
+
+        .transaction-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .type-in {
+            color: #51cf66;
+            font-weight: bold;
+        }
+
+        .type-out {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .search-filter {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-filter input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #ff6b6b;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #ff6b6b;
+            border-bottom: 3px solid #ff6b6b;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .current-month-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .current-month-info h3 {
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .form-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .stock-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .month-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+/* Match form-group input styles */
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 48px !important;
+    padding: 0 12px !important;
+    border: 2px solid #ddd !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    background-color: white !important;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 44px !important;
+    color: #333 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 44px !important;
+    right: 10px !important;
+    top: 2px !important;
+}
+
+.select2-container--default .select2-selection--single:focus,
+.select2-container--default.select2-container--focus .select2-selection--single {
+    outline: none !important;
+    border-color: #ff6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #999 !important;
+}
+
+.select2-dropdown {
+    border: 2px solid #ff6b6b !important;
+    border-radius: 8px !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #ff6b6b !important;
+    color: white !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 2px solid #ddd !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: #ff6b6b !important;
+    outline: none !important;
+}
+        }
+    </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+/* Custom styles to match form-group input styles */
+.select2-container--default .select2-selection--single {
+    height: 48px !important;
+    padding: 12px !important;
+    border: 2px solid #ddd !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    background-color: white !important;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #333 !important;
+    padding-left: 0 !important;
+    line-height: inherit !important;
+    font-size: 16px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    right: 10px !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #ff6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1) !important;
+}
+</style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ระบบจัดการ Stock WIP โซนพริกไทย</h1>
+            <p>ระบบบันทึกและติดตามสินค้าคงคลัง พร้อมระบบ Lot</p>
+        </div>
+
+        <!-- Month Selector -->
+        <div class="month-selector">
+            <label for="monthYear">เลือกเดือน/ปี:</label>
+            <select id="monthYear" onchange="changeMonth()"></select>
+            <button class="export-btn" onclick="exportToExcel()">📊 Export Excel</button>
+            <button class="btn btn-danger" onclick="clearCurrentMonth()">ล้างข้อมูลเดือนนี้</button>
+            <button class="btn btn-danger" onclick="clearAllData()">ล้างข้อมูลทั้งหมด</button>
+            <div style="margin-left: auto; color: #666;">
+                ข้อมูลถูกบันทึกอัตโนมัติ
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Current Month Info -->
+            <div class="current-month-info">
+                <h3 id="currentMonthTitle">เดือนปัจจุบัน</h3>
+                <p id="currentMonthDesc">กำลังทำงานในเดือนนี้</p>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('summary')">สรุปสินค้าคงคลัง</button>
+                <button class="tab" onclick="showTab('transaction')">บันทึกรายการ</button>
+                <button class="tab" onclick="showTab('history')">ประวัติการเคลื่อนไหว</button>
+            </div>
+
+            <!-- Tab 1: Summary -->
+            <div id="summary" class="tab-content active">
+                <div class="search-filter">
+                    <input type="text" id="searchStock" placeholder="🔍 ค้นหาสินค้า..." onkeyup="filterStock()">
+                </div>
+                <div class="stock-summary" id="stockSummary">
+                    <!-- Stock cards will be generated here -->
+                </div>
+            </div>
+
+            <!-- Tab 2: Transaction -->
+            <div id="transaction" class="tab-content">
+                <div class="form-section">
+                    <h2>📝 บันทึกรายการเข้า-ออก</h2>
+                    <form id="transactionForm">
+                        <div class="form-group">
+                            <div>
+                                <label for="productCode">รหัสสินค้า:</label>
+                                <select id="productCode" required>
+                                    <option value="">เลือกสินค้า</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="transactionType">ประเภท:</label>
+                                <select id="transactionType" required>
+                                    <option value="">เลือกประเภท</option>
+                                    <option value="in">รับเข้า</option>
+                                    <option value="out">ตัดออก</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label for="quantity">จำนวน (กก.):</label>
+                                <input type="number" id="quantity" step="0.01" required>
+                            </div>
+                            <div>
+                                <label for="lotNumber">หมายเลข Lot:</label>
+    <div id="lotNumberContainer">
+        <input type="text" id="lotNumber" required>
+    </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label for="transactionDate">วันที่:</label>
+                                <input type="date" id="transactionDate" required>
+                            </div>
+                            <div>
+                                <label for="remarks">หมายเหตุ:</label>
+                                <input type="text" id="remarks" placeholder="หมายเหตุ (ถ้ามี)">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 บันทึกรายการ</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 3: History -->
+            <div id="history" class="tab-content">
+                <div class="transaction-list">
+                    <h2>📊 ประวัติการเคลื่อนไหวสินค้า</h2>
+                    <div class="search-filter">
+                        <input type="text" id="searchHistory" placeholder="🔍 ค้นหาประวัติ..." onkeyup="filterHistory()">
+                    </div>
+                    <table class="transaction-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>รหัสสินค้า</th>
+                                <th>ชื่อสินค้า</th>
+                                <th>ประเภท</th>
+                                <th>จำนวน (กก.)</th>
+                                <th>Lot</th>
+                                <th>หมายเหตุ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Transaction history will be generated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>✏️ แก้ไขรายการ</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <div>
+                        <label for="editProductCode">รหัสสินค้า:</label>
+                        <select id="editProductCode" required>
+                            <option value="">เลือกสินค้า</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editTransactionType">ประเภท:</label>
+                        <select id="editTransactionType" required>
+                            <option value="">เลือกประเภท</option>
+                            <option value="in">รับเข้า</option>
+                            <option value="out">ตัดออก</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label for="editQuantity">จำนวน (กก.):</label>
+                        <input type="number" id="editQuantity" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="editLotNumber">หมายเลข Lot:</label>
+                        <input type="text" id="editLotNumber" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div>
+                        <label for="editTransactionDate">วันที่:</label>
+                        <input type="date" id="editTransactionDate" required>
+                    </div>
+                    <div>
+                        <label for="editRemarks">หมายเหตุ:</label>
+                        <input type="text" id="editRemarks" placeholder="หมายเหตุ (ถ้ามี)">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">💾 บันทึกการแก้ไข</button>
+                <button type="button" class="btn btn-danger" onclick="closeEditModal()">❌ ยกเลิก</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Product data
+        const products = [
+            {code: "WR402B00000", name: "เศษพริกไทยเม็ดดำ"},
+            {code: "WP40101P330", name: "ไทขาวป่นข้าวทอง (ชมพู) 100 กรัม"},
+            {code: "WP40101P430", name: "พริกไทยขาวป่นผสม"},
+            {code: "WP40102P330", name: "ไทขาวป่นข้าวทอง 100 กรัม (เจาะใส)"},
+            {code: "WP40106P430", name: "พริกไทยขาวป่นโม่เอง 100%"},
+            {code: "WP401B00000", name: "เศษพริกไทยขาวป่น"},
+            {code: "WP40201P330", name: "ไทดำป่น 100 กรัม (ซองฟ้า)"},
+            {code: "WP40202P430", name: "พริกไทยดำป่นเบาโม่เอง"},
+            {code: "WP402B00000", name: "เศษพริกไทดำป่น"},
+            {code: "WP40301P430", name: "พริกไทยเม็ดขาว A อบ"},
+            {code: "WP40302P430", name: "พริกไทยเม็ดขาว B อบ"},
+            {code: "WP40401P430", name: "พริกไทยเม็ดดำอบ"},
+            {code: "WP40501P430", name: "พริกไทยขาวอบป่น A"},
+            {code: "WP40502P430", name: "พริกไทยขาวอบป่น B"},
+            {code: "WP40601P430", name: "พริกไทยดำหนักอบป่น"},
+            {code: "WR301B00000", name: "เศษพริกเม็ด"},
+            {code: "WR40101P330", name: "ไทเม็ดขาว 100 กรัม (ซองชมพู)"},
+            {code: "WR40101P430", name: "ไทเม็ดขาว ( 12กรัม ) แผงชมพู"},
+            {code: "WR40102P330", name: "ไทเม็ดขาว100กรัม ถุงเขียว"},
+            {code: "WR40103P430", name: "พริกไทเม็ดขาว A ร่อน"},
+            {code: "WR40104P430", name: "พริกไทเม็ดขาว B ร่อน"},
+            {code: "WR40105P430", name: "พริกไทเม็ดขาว A เลือก"},
+            {code: "WR40106P430", name: "พริกไทเม็ดขาว B เลือก"},
+            {code: "WR401B00000", name: "เศษพริกไทยเม็ดขาว"},
+            {code: "WR40201P330", name: "ไทเม็ดดำ 100 กรัม (ซองฟ้า)"},
+            {code: "WR40201P430", name: "ไทเม็ดดำ ( 12กรัม ) แผงชมพู"},
+            {code: "WR40203P430", name: "พริกไทเม็ดดำ ร่อน"},
+            {code: "WR40204P430", name: "พริกไทเม็ดดำ เลือก"}
+        ];
+
+        // Global variables
+        let currentMonth = '';
+        let allData = {};
+        let currentEditId = null;
+
+        // Thai month names
+        const thaiMonths = [
+            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateProductOptions();
+            populateMonthOptions();
+            loadAllData();
+            setCurrentMonth();
+            setTodayDate();
+            $('#productCode').select2({
+                width: '100%',
+                placeholder: 'ค้นหารหัสสินค้า',
+                allowClear: true
+            });
+    
+            document.getElementById('transactionType').addEventListener('change', updateLotField);
+            document.getElementById('productCode').addEventListener('change', updateLotField);
+
+            function updateLotField() {
+                const type = document.getElementById('transactionType').value;
+                const productCode = document.getElementById('productCode').value;
+                const container = document.getElementById('lotNumberContainer');
+
+                const transactions = getCurrentTransactions();
+                const lotsSet = new Set();
+
+                transactions.forEach(tx => {
+                    if (tx.productCode === productCode && tx.type === 'in') {
+                        lotsSet.add(tx.lotNumber);
+                    }
+                });
+
+                if (type === 'out') {
+                    const select = document.createElement('select');
+                    select.id = 'lotNumber';
+                    select.required = true;
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'เลือกหมายเลข Lot';
+                    select.appendChild(defaultOption);
+
+                    lotsSet.forEach(lot => {
+                        const option = document.createElement('option');
+                        option.value = lot;
+                        option.textContent = lot;
+                        select.appendChild(option);
+                    });
+
+                    container.innerHTML = '';
+                    container.appendChild(select);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = 'lotNumber';
+                    input.required = true;
+                    container.innerHTML = '';
+                    container.appendChild(input);
+                }
+            }
+
+            updateDisplay();
+        });
+
+        function populateProductOptions() {
+            const selects = ['productCode', 'editProductCode'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.code;
+                    option.textContent = `${product.code} - ${product.name}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function populateMonthOptions() {
+            const select = document.getElementById('monthYear');
+            const currentDate = new Date();
+            
+            // Generate options for current year and next year
+            for (let year = currentDate.getFullYear() - 1; year <= currentDate.getFullYear() + 1; year++) {
+                for (let month = 0; month < 12; month++) {
+                    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    const option = document.createElement('option');
+                    option.value = monthKey;
+                    option.textContent = `${thaiMonths[month]} ${year + 543}`;
+                    select.appendChild(option);
+                }
+            }
+        }
+
+        function setCurrentMonth() {
+            const now = new Date();
+            const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            currentMonth = monthKey;
+            document.getElementById('monthYear').value = monthKey;
+            updateCurrentMonthInfo();
+        }
+
+        function updateCurrentMonthInfo() {
+            const [year, month] = currentMonth.split('-');
+            const monthIndex = parseInt(month) - 1;
+            const thaiYear = parseInt(year) + 543;
+            
+            document.getElementById('currentMonthTitle').textContent = 
+                `${thaiMonths[monthIndex]} ${thaiYear}`;
+            document.getElementById('currentMonthDesc').textContent = 
+                `กำลังทำงานในเดือน ${thaiMonths[monthIndex]} พ.ศ. ${thaiYear}`;
+        }
+
+        function changeMonth() {
+            const newMonth = document.getElementById('monthYear').value;
+            if (newMonth !== currentMonth) {
+                saveCurrentData();
+                currentMonth = newMonth;
+                updateCurrentMonthInfo();
+                updateDisplay();
+            }
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('transactionDate').value = today;
+        }
+
+        function loadAllData() {
+            try {
+                // localStorage removed
+                if (stored) {
+                    allData = JSON.parse(stored);
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                allData = {};
+            }
+        }
+
+        function saveCurrentData() {
+            if (currentMonth && getCurrentTransactions().length > 0) {
+                allData[currentMonth] = getCurrentTransactions();
+                saveAllData();
+            }
+        }
+
+        function saveAllData() {
+            try {
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            }
+        }
+
+        function getCurrentTransactions() {
+            return allData[currentMonth] || [];
+        }
+
+        function setCurrentTransactions(transactions) {
+            allData[currentMonth] = transactions;
+            saveAllData();
+        }
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Update data when switching to summary or history
+            if (tabName === 'summary') {
+                updateStockSummary();
+            } else if (tabName === 'history') {
+                updateHistoryTable();
+            }
+        }
+
+        function updateDisplay() {
+            updateStockSummary();
+            updateHistoryTable();
+        }
+
+        function updateStockSummary() {
+            const stockSummary = document.getElementById('stockSummary');
+            const stockBalances = {};
+            const transactions = getCurrentTransactions();
+
+            // Calculate stock balances
+            products.forEach(product => {
+                stockBalances[product.code] = {
+                    name: product.name,
+                    balance: 0,
+                    lots: {}
+                };
+            });
+
+            transactions.forEach(transaction => {
+                const product = stockBalances[transaction.productCode];
+                if (product) {
+                    const qty = parseFloat(transaction.quantity);
+                    if (transaction.type === 'in') {
+                        product.balance += qty;
+                        if (!product.lots[transaction.lotNumber]) {
+                            product.lots[transaction.lotNumber] = 0;
+                        }
+                        product.lots[transaction.lotNumber] += qty;
+                    } else {
+                        product.balance -= qty;
+                        if (!product.lots[transaction.lotNumber]) {
+                            product.lots[transaction.lotNumber] = 0;
+                        }
+                        product.lots[transaction.lotNumber] -= qty;
+                    }
+                }
+            });
+
+            // Generate stock cards
+            stockSummary.innerHTML = '';
+            Object.entries(stockBalances).forEach(([code, data]) => {
+                const card = document.createElement('div');
+                card.className = 'stock-card';
+                
+                const lotsInfo = Object.entries(data.lots)
+                    .filter(([lot, qty]) => qty !== 0)
+                    .map(([lot, qty]) => `${lot}: ${qty.toFixed(2)} กก.`)
+                    .join('<br>');
+
+                card.innerHTML = `
+                    <h3>${code}</h3>
+                    <p>${data.name}</p>
+                    <div class="stock-balance">${data.balance.toFixed(2)} กก.</div>
+                    <div style="font-size: 0.9em; color: #666;">
+                        <strong>Lots ที่มี:</strong><br>
+                        ${lotsInfo || 'ไม่มี Lot'}
+                    </div>
+                `;
+                card.style.cursor = 'pointer';
+                card.addEventListener('click', function() {
+                    // เปลี่ยน tab ไปยัง 'transaction'
+                    showTab('transaction');
+                    // ตั้งค่า dropdown เป็นสินค้าที่คลิก
+                    const productSelect = document.getElementById('productCode');
+                    productSelect.value = code;
+                    $('#productCode').trigger('change');
+                    // focus ไปที่ quantity
+                    setTimeout(() => {
+                        document.getElementById('quantity').focus();
+                    }, 300);
+                });
+                stockSummary.appendChild(card);
+            });
+        }
+
+        function updateHistoryTable() {
+            const tbody = document.getElementById('historyTable').querySelector('tbody');
+            tbody.innerHTML = '';
+            const transactions = getCurrentTransactions();
+
+            // Sort transactions by date (newest first)
+            const sortedTransactions = [...transactions].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+
+            sortedTransactions.forEach((transaction) => {
+                const product = products.find(p => p.code === transaction.productCode);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(transaction.date).toLocaleDateString('th-TH')}</td>
+                    <td>${transaction.productCode}</td>
+                    <td>${product ? product.name : 'ไม่พบข้อมูล'}</td>
+                    <td class="type-${transaction.type}">${transaction.type === 'in' ? 'รับเข้า' : 'ตัดออก'}</td>
+                    <td>${parseFloat(transaction.quantity).toFixed(2)}</td>
+                    <td>${transaction.lotNumber}</td>
+                    <td>${transaction.remarks || '-'}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editTransaction(${transaction.id})">✏️ แก้ไข</button>
+                        <button class="btn btn-danger" onclick="deleteTransaction(${transaction.id})">🗑️ ลบ</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        
+function getLotBalance(productCode, lotNumber) {
+    const transactions = getCurrentTransactions();
+    let balance = 0;
+    transactions.forEach(tx => {
+        if (tx.productCode === productCode && tx.lotNumber === lotNumber) {
+            const qty = parseFloat(tx.quantity);
+            if (tx.type === 'in') balance += qty;
+            else if (tx.type === 'out') balance -= qty;
+        }
+    });
+    return balance;
+}
+
+
+function filterStock() {
+            const searchTerm = document.getElementById('searchStock').value.toLowerCase();
+            const stockCards = document.querySelectorAll('.stock-card');
+            
+            stockCards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        }
+
+        function filterHistory() {
+            const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
+            const rows = document.querySelectorAll('#historyTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Form submission
+        document.getElementById('transactionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const transactions = getCurrentTransactions();
+            const transaction = {
+                id: Date.now(),
+                productCode: document.getElementById('productCode').value,
+                type: document.getElementById('transactionType').value,
+                quantity: document.getElementById('quantity').value,
+                lotNumber: document.getElementById('lotNumber').value,
+                date: document.getElementById('transactionDate').value,
+                remarks: document.getElementById('remarks').value,
+                timestamp: new Date().toISOString()
+            };
+
+            
+    if (transaction.type === 'out') {
+        const available = getLotBalance(transaction.productCode, transaction.lotNumber);
+        const qty = parseFloat(transaction.quantity);
+
+        if (qty > available) {
+            alert(`❌ ไม่สามารถตัดออกได้เกินจำนวนที่เหลืออยู่ใน Lot\nยอดคงเหลือ: ${available.toFixed(2)} กก.`);
+            return;
+        }
+    }
+
+    transactions.push(transaction);
+            fetch('https://script.google.com/macros/s/AKfycby46J0cUmEn3UdlKzKJr_3qo0FLbhZmgNDxximdpWrEbt2CYFU6NTC4vVaaY-6xXPf_rg/exec', {
+    method: 'POST',
+    body: JSON.stringify(transaction),
+    headers: { 'Content-Type': 'application/json' }
+}).then(r => r.text()).then(res => alert('✅ บันทึกข้อมูลเรียบร้อย')).catch(err => alert('❌ บันทึกไม่สำเร็จ'));
+
+            
+            alert('✅ บันทึกรายการเรียบร้อยแล้ว!');
+            this.reset();
+            setTodayDate();
+            $('#productCode').select2({
+                width: '100%',
+                placeholder: 'ค้นหารหัสสินค้า',
+                allowClear: true
+            });
+    
+            document.getElementById('transactionType').addEventListener('change', updateLotField);
+            document.getElementById('productCode').addEventListener('change', updateLotField);
+
+            function updateLotField() {
+                const type = document.getElementById('transactionType').value;
+                const productCode = document.getElementById('productCode').value;
+                const container = document.getElementById('lotNumberContainer');
+
+                const transactions = getCurrentTransactions();
+                const lotsSet = new Set();
+
+                transactions.forEach(tx => {
+                    if (tx.productCode === productCode && tx.type === 'in') {
+                        lotsSet.add(tx.lotNumber);
+                    }
+                });
+
+                if (type === 'out') {
+                    const select = document.createElement('select');
+                    select.id = 'lotNumber';
+                    select.required = true;
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'เลือกหมายเลข Lot';
+                    select.appendChild(defaultOption);
+
+                    lotsSet.forEach(lot => {
+                        const option = document.createElement('option');
+                        option.value = lot;
+                        option.textContent = lot;
+                        select.appendChild(option);
+                    });
+
+                    container.innerHTML = '';
+                    container.appendChild(select);
+                } else {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = 'lotNumber';
+                    input.required = true;
+                    container.innerHTML = '';
+                    container.appendChild(input);
+                }
+            }
+
+            updateDisplay();
+        });
+
+        // Edit functionality
+        function editTransaction(id) {
+            const transactions = getCurrentTransactions();
+            const transaction = transactions.find(t => t.id === id);
+            if (!transaction) return;
+
+            currentEditId = id;
+            
+            // Populate edit form
+            document.getElementById('editProductCode').value = transaction.productCode;
+            document.getElementById('editTransactionType').value = transaction.type;
+            document.getElementById('editQuantity').value = transaction.quantity;
+            document.getElementById('editLotNumber').value = transaction.lotNumber;
+            document.getElementById('editTransactionDate').value = transaction.date;
+            document.getElementById('editRemarks').value = transaction.remarks;
+
+            // Show modal
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditId = null;
+        }
+
+        // Edit form submission
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const transactions = getCurrentTransactions();
+            const transactionIndex = transactions.findIndex(t => t.id === currentEditId);
+            if (transactionIndex === -1) return;
+
+            transactions[transactionIndex] = {
+                ...transactions[transactionIndex],
+                productCode: document.getElementById('editProductCode').value,
+                type: document.getElementById('editTransactionType').value,
+                quantity: document.getElementById('editQuantity').value,
+                lotNumber: document.getElementById('editLotNumber').value,
+                date: document.getElementById('editTransactionDate').value,
+                remarks: document.getElementById('editRemarks').value
+            };
+
+            fetch('https://script.google.com/macros/s/AKfycby46J0cUmEn3UdlKzKJr_3qo0FLbhZmgNDxximdpWrEbt2CYFU6NTC4vVaaY-6xXPf_rg/exec', {
+    method: 'POST',
+    body: JSON.stringify(transaction),
+    headers: { 'Content-Type': 'application/json' }
+}).then(r => r.text()).then(res => alert('✅ บันทึกข้อมูลเรียบร้อย')).catch(err => alert('❌ บันทึกไม่สำเร็จ'));
+
+            closeEditModal();
+            alert('✅ แก้ไขรายการเรียบร้อยแล้ว!');
+            updateDisplay();
+        });
+
+        function deleteTransaction(id) {
+            if (confirm('⚠️ คุณแน่ใจหรือไม่ที่จะลบรายการนี้?')) {
+                const transactions = getCurrentTransactions();
+                const filteredTransactions = transactions.filter(t => t.id !== id);
+                setCurrentTransactions(filteredTransactions);
+                alert('✅ ลบรายการเรียบร้อยแล้ว!');
+                updateDisplay();
+            }
+        }
+
+        // Excel Export Function
+        function exportToExcel() {
+            const transactions = getCurrentTransactions();
+            if (transactions.length === 0) {
+                alert('⚠️ ไม่มีข้อมูลในเดือนนี้สำหรับ Export');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = [];
+            
+            // Add header with BOM for UTF-8
+            const headers = ['วันที่', 'รหัสสินค้า', 'ชื่อสินค้า', 'ประเภท', 'จำนวน (กก.)', 'หมายเลข Lot', 'หมายเหตุ'];
+            excelData.push(headers);
+
+            // Add transaction data
+            transactions.forEach(transaction => {
+                const product = products.find(p => p.code === transaction.productCode);
+                const row = [
+                    new Date(transaction.date).toLocaleDateString('th-TH'),
+                    transaction.productCode,
+                    product ? product.name : 'ไม่พบข้อมูล',
+                    transaction.type === 'in' ? 'รับเข้า' : 'ตัดออก',
+                    parseFloat(transaction.quantity).toFixed(2),
+                    transaction.lotNumber,
+                    transaction.remarks || '-'
+                ];
+                excelData.push(row);
+            });
+
+            // Calculate stock summary
+            const stockBalances = {};
+            products.forEach(product => {
+                stockBalances[product.code] = {
+                    name: product.name,
+                    balance: 0,
+                    lots: {}
+                };
+            });
+
+            transactions.forEach(transaction => {
+                const product = stockBalances[transaction.productCode];
+                if (product) {
+                    const qty = parseFloat(transaction.quantity);
+                    if (transaction.type === 'in') {
+                        product.balance += qty;
+                        if (!product.lots[transaction.lotNumber]) {
+                            product.lots[transaction.lotNumber] = 0;
+                        }
+                        product.lots[transaction.lotNumber] += qty;
+                    } else {
+                        product.balance -= qty;
+                        if (!product.lots[transaction.lotNumber]) {
+                            product.lots[transaction.lotNumber] = 0;
+                        }
+                        product.lots[transaction.lotNumber] -= qty;
+                    }
+                }
+            });
+
+            // Add summary data
+            excelData.push([]); // Empty row
+            excelData.push(['สรุปสินค้าคงคลัง']);
+            excelData.push(['รหัสสินค้า', 'ชื่อสินค้า', 'ยอดคงคลัง (กก.)', 'Lots ที่มี']);
+
+            Object.entries(stockBalances).forEach(([code, data]) => {
+                const lotsInfo = Object.entries(data.lots)
+                    .filter(([lot, qty]) => qty !== 0)
+                    .map(([lot, qty]) => `${lot}: ${qty.toFixed(2)} กก.`)
+                    .join('; ');
+
+                const row = [
+                    code,
+                    data.name,
+                    data.balance.toFixed(2),
+                    lotsInfo || 'ไม่มี Lot'
+                ];
+                excelData.push(row);
+            });
+
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+
+            // Set column widths
+            ws['!cols'] = [
+                { width: 15 }, // วันที่
+                { width: 20 }, // รหัสสินค้า
+                { width: 40 }, // ชื่อสินค้า
+                { width: 10 }, // ประเภท
+                { width: 15 }, // จำนวน
+                { width: 15 }, // Lot
+                { width: 20 }  // หมายเหตุ
+            ];
+
+            // Add worksheet to workbook
+            const [year, month] = currentMonth.split('-');
+            const monthIndex = parseInt(month) - 1;
+            const thaiYear = parseInt(year) + 543;
+            const sheetName = `${thaiMonths[monthIndex]}_${thaiYear}`;
+            
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+
+            // Generate filename
+            const filename = `Stock_WIP_${sheetName}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
+            
+            alert(`✅ Export เรียบร้อยแล้ว!\nไฟล์: ${filename}`);
+        }
+
+        // Modal close functionality
+        document.querySelector('.close').addEventListener('click', closeEditModal);
+        window.addEventListener('click', function(event) {
+            if (event.target === document.getElementById('editModal')) {
+                closeEditModal();
+            }
+        });
+
+        // Auto-save when window closes
+        window.addEventListener('beforeunload', function() {
+            saveCurrentData();
+        });
+
+function clearCurrentMonth() {
+            if (confirm('⚠️ คุณแน่ใจหรือไม่ที่จะล้างข้อมูลเดือนนี้ทั้งหมด?')) {
+                allData[currentMonth] = [];
+                saveAllData();
+                updateDisplay();
+                alert('✅ ล้างข้อมูลเดือนนี้เรียบร้อยแล้ว');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ คุณแน่ใจหรือไม่ที่จะล้างข้อมูลทั้งหมด?')) {
+                localStorage.removeItem('pepperStockData');
+                allData = {};
+                updateDisplay();
+                alert('✅ ล้างข้อมูลทั้งหมดเรียบร้อยแล้ว');
+            }
+        }
+
+        // Auto-save periodically
+        setInterval(function() {
+            saveCurrentData();
+        }, 30000);
+    </script>
+</body>
+</html>
