@@ -98,13 +98,6 @@
       background-color: rgba(67, 97, 238, 0.05);
     }
     
-    .input-wrapper {
-      position: relative;
-      width: 100%;
-      display: flex;
-      align-items: center;
-    }
-    
     td input {
       width: 100%;
       padding: 10px;
@@ -119,68 +112,6 @@
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-    }
-    
-    .dropdown-toggle {
-      position: absolute;
-      right: 8px;
-      background: none;
-      border: none;
-      color: #6c757d;
-      cursor: pointer;
-      font-size: 14px;
-      display: none;
-      padding: 5px;
-    }
-    
-    .dropdown-toggle:hover {
-      color: var(--primary);
-    }
-    
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: 100%;
-      min-width: 180px;
-      background: white;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      text-align: left;
-      padding: 10px 0;
-    }
-    
-    .dropdown-header {
-      font-weight: 600;
-      padding: 5px 15px;
-      color: #6c757d;
-      font-size: 0.85rem;
-      border-bottom: 1px solid #f0f0f0;
-      margin-bottom: 5px;
-    }
-    
-    .dropdown-item {
-      padding: 8px 15px;
-      color: var(--dark);
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    
-    .dropdown-item:hover {
-      background: #f5f7fa;
-    }
-    
-    .dropdown-item.edit-item {
-      color: var(--primary);
-      font-weight: 500;
-      border-top: 1px solid #f0f0f0;
-      margin-top: 5px;
-    }
-    
-    .dropdown-item.edit-item:hover {
-      background: rgba(67, 97, 238, 0.1);
     }
     
     .calculated-cell {
@@ -223,76 +154,20 @@
       color: var(--dark);
     }
 
-    .btn-howto:hover {
-      background: var(--secondary);
+    .btn-add:hover, .btn-reset:hover, .btn-howto:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-add:hover {
-      background: var(--secondary);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    .btn-reset:hover {
-      background: #e5e7eb;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    
-    @media (max-width: 768px) {
-      .app-title {
-        font-size: 1.5rem;
-      }
-      
-      th, td {
-        padding: 10px 5px;
-        font-size: 0.9rem;
-      }
-      
-      td input {
-        padding: 8px 5px;
-      }
-      
-      button {
-        padding: 10px 16px;
-      }
-    }
+    .btn-add:hover { background: var(--secondary); }
+    .btn-reset:hover { background: #e5e7eb; }
+    .btn-howto:hover { background: var(--secondary); color: white; }
     
     .footer {
       text-align: center;
       margin-top: 20px;
       font-size: 0.85rem;
       color: #6c757d;
-    }
-    
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    tr {
-      animation: fadeIn 0.3s ease-out forwards;
-    }
-    
-    .dropdown-fixed {
-      position: fixed;
-      background: white;
-      border-radius: 6px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      padding: 10px 0;
-      min-width: 200px;
-      max-width: 300px;
-      text-align: left;
-    }
-
-    .input-edit-mode {
-      border-color: #ff9800 !important;
-      box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2) !important;
-      background-color: #fffbf0;
     }
   </style>
 </head>
@@ -313,9 +188,7 @@
             <th>เปอร์เซ็นต์</th>
           </tr>
         </thead>
-        <tbody>
-          <!-- Rows will be added dynamically -->
-        </tbody>
+        <tbody></tbody>
       </table>
       
       <div class="button-group">
@@ -336,331 +209,64 @@
     </div>
   </div>
 
-  <div id="fixedDropdown" class="dropdown-fixed" style="display: none;"></div>
-
   <script>
     const table = document.getElementById("calculatorTable").getElementsByTagName('tbody')[0];
     const inputRefs = [];
-    const fixedDropdown = document.getElementById("fixedDropdown");
-    let activeDropdownToggle = null;
-    let currentInputData = new Map(); // เก็บข้อมูลเดิมและการคำนวณ
+
+    function normalizeNumericLiterals(expr) {
+      const tokens = expr.replace(/\s+/g, '').match(/\d*\.?\d+|[+\-*/()]/g);
+      if (!tokens) return expr;
+      return tokens.map(t => (/^\d*\.?\d+$/.test(t) ? String(Number(t)) : t)).join('');
+    }
 
     function createInputCell(onEnter) {
       const cell = document.createElement("td");
-      const inputWrapper = document.createElement("div");
-      inputWrapper.className = "input-wrapper";
-      
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "0.00";
-      
-      const dropdownToggle = document.createElement("button");
-      dropdownToggle.className = "dropdown-toggle";
-      dropdownToggle.innerHTML = '<i class="fas fa-calculator"></i>';
-      dropdownToggle.style.display = "none";
-      
-      const dropdownContent = document.createElement("div");
-      dropdownContent.className = "dropdown-content";
-      
-      inputWrapper.appendChild(input);
-      inputWrapper.appendChild(dropdownToggle);
-      cell.appendChild(inputWrapper);
-      
-      // Click event for dropdown toggle
-      dropdownToggle.addEventListener("click", function(e) {
-        e.stopPropagation();
-        
-        if (activeDropdownToggle === dropdownToggle && fixedDropdown.style.display === "block") {
-          fixedDropdown.style.display = "none";
-          activeDropdownToggle = null;
-          return;
-        }
-        
-        activeDropdownToggle = dropdownToggle;
-        
-        const rect = dropdownToggle.getBoundingClientRect();
-        fixedDropdown.style.top = rect.bottom + "px";
-        
-        const rightEdge = rect.right;
-        const windowWidth = window.innerWidth;
-        if (rightEdge + 200 > windowWidth) {
-          fixedDropdown.style.right = (windowWidth - rect.left) + "px";
-          fixedDropdown.style.left = "auto";
-        } else {
-          fixedDropdown.style.left = rect.left + "px";
-          fixedDropdown.style.right = "auto";
-        }
-        
-        fixedDropdown.innerHTML = dropdownContent.innerHTML;
-        fixedDropdown.style.display = "block";
-        
-        // Add event listeners to dropdown items in fixed dropdown
-        const editItem = fixedDropdown.querySelector('.edit-item');
-        if (editItem) {
-          editItem.addEventListener('click', function() {
-            editInputValue(input);
-            fixedDropdown.style.display = "none";
-            activeDropdownToggle = null;
-          });
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          let value = input.value.trim();
+          if (value === "") {
+            input.value = "";
+            onEnter();
+            return;
+          }
+          value = normalizeNumericLiterals(value);
+          try {
+            const result = eval(value);
+            input.value = parseFloat(result).toFixed(2);
+            onEnter();
+          } catch {
+            input.value = "ERROR";
+          }
         }
       });
-
-      return { 
-        cell, 
-        input, 
-        dropdownToggle,
-        dropdownContent,
-        setHandler: () => {
-          input.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-              try {
-                const originalExpression = input.value.trim();
-                
-                // ถ้าเป็นสตริงว่างให้ clear ข้อมูล
-                if (originalExpression === "") {
-                  input.value = "";
-                  dropdownToggle.style.display = "none";
-                  currentInputData.delete(input);
-                  onEnter();
-                  return;
-                }
-                
-                // Clean expression by removing leading + sign
-                const cleanExpression = originalExpression.replace(/^\+/, '');
-                
-                // ถ้าเป็นตัวเลขธรรมดา
-                if (/^\d+(\.\d+)?$/.test(cleanExpression)) {
-                  input.value = parseFloat(cleanExpression).toFixed(2);
-                  dropdownToggle.style.display = "none";
-                  currentInputData.delete(input);
-                  onEnter();
-                  return;
-                }
-                
-                // คำนวณผลลัพธ์ using cleaned expression
-                const result = eval(cleanExpression);
-                input.value = parseFloat(result).toFixed(2);
-                
-                // Parse operations using cleaned expression
-                const operations = parseAllOperations(cleanExpression);
-                
-                // เก็บข้อมูลเดิมและการคำนวณ (store original for editing)
-                currentInputData.set(input, {
-                  originalExpression: originalExpression, // Keep original with +
-                  result: result,
-                  operations: operations
-                });
-                
-                // Show dropdown toggle if expression contains operators (check cleaned expression)
-                const hasOperators = /[+\-*/]/.test(cleanExpression);
-                if (hasOperators) {
-                  createDropdownContent(dropdownContent, operations, cleanExpression, result);
-                  dropdownToggle.style.display = "block";
-                } else {
-                  dropdownToggle.style.display = "none";
-                }
-                
-                onEnter();
-              } catch (err) {
-                input.value = "ERROR";
-                dropdownToggle.style.display = "none";
-                currentInputData.delete(input);
-              }
-            }
-          });
-
-          // Add input event for real-time validation
-          input.addEventListener("input", function() {
-            // Remove edit mode styling when user starts typing
-            input.classList.remove("input-edit-mode");
-          });
-        }
-      };
-    }
-
-    function parseAllOperations(expression) {
-      // Remove spaces
-      expression = expression.replace(/\s+/g, '');
-      
-      // Remove leading + sign if exists
-      expression = expression.replace(/^\+/, '');
-      
-      const operations = [];
-      
-      // Split expression into tokens (numbers and operators)
-      const tokens = expression.match(/\d+(?:\.\d+)?|[+\-*/]/g);
-      
-      if (!tokens || tokens.length < 3) {
-        return operations;
-      }
-      
-      // Process operations step by step following mathematical order
-      let workingTokens = [...tokens];
-      
-      // First pass: handle multiplication and division (left to right)
-      let i = 1;
-      while (i < workingTokens.length) {
-        if (workingTokens[i] === '*' || workingTokens[i] === '/') {
-          const num1 = parseFloat(workingTokens[i-1]);
-          const num2 = parseFloat(workingTokens[i+1]);
-          const operator = workingTokens[i];
-          
-          let result;
-          let symbol;
-          
-          if (operator === '*') {
-            result = num1 * num2;
-            symbol = '×';
-          } else {
-            result = num1 / num2;
-            symbol = '÷';
-          }
-          
-          operations.push(`${workingTokens[i-1]} ${symbol} ${workingTokens[i+1]} = ${result.toFixed(2)}`);
-          
-          // Replace the three tokens with the result
-          workingTokens.splice(i-1, 3, result.toString());
-          i = 1; // Reset to check from beginning
-        } else {
-          i += 2; // Skip to next operator
-        }
-      }
-      
-      // Second pass: handle addition and subtraction (left to right)
-      i = 1;
-      while (i < workingTokens.length) {
-        if (workingTokens[i] === '+' || workingTokens[i] === '-') {
-          const num1 = parseFloat(workingTokens[i-1]);
-          const num2 = parseFloat(workingTokens[i+1]);
-          const operator = workingTokens[i];
-          
-          let result;
-          
-          if (operator === '+') {
-            result = num1 + num2;
-          } else {
-            result = num1 - num2;
-          }
-          
-          operations.push(`${parseFloat(workingTokens[i-1]).toFixed(2)} ${operator} ${parseFloat(workingTokens[i+1]).toFixed(2)} = ${result.toFixed(2)}`);
-          
-          // Replace the three tokens with the result
-          workingTokens.splice(i-1, 3, result.toString());
-          i = 1; // Reset to check from beginning
-        } else {
-          i += 2; // Skip to next operator
-        }
-      }
-      
-      return operations;
-    }
-
-    function createDropdownContent(dropdownContent, operations, originalExpression, result) {
-      dropdownContent.innerHTML = '';
-      
-      const header = document.createElement("div");
-      header.className = "dropdown-header";
-      header.textContent = "รายละเอียดการคำนวณ";
-      dropdownContent.appendChild(header);
-      
-      // Show operations if any
-      if (operations.length > 0) {
-        // Group operations by type
-        const multiplyDivide = operations.filter(op => op.includes('×') || op.includes('÷'));
-        const addSubtract = operations.filter(op => op.includes('+') || op.includes('-'));
-        
-        // Show multiplication/division first
-        if (multiplyDivide.length > 0) {
-          const mdHeader = document.createElement("div");
-          mdHeader.className = "dropdown-header";
-          mdHeader.textContent = "การคูณ/หาร";
-          mdHeader.style.marginTop = "10px";
-          mdHeader.style.fontSize = "0.8rem";
-          mdHeader.style.color = "#4361ee";
-          dropdownContent.appendChild(mdHeader);
-          
-          multiplyDivide.forEach(operation => {
-            const itemElement = document.createElement("div");
-            itemElement.className = "dropdown-item";
-            itemElement.style.paddingLeft = "20px";
-            itemElement.textContent = operation;
-            dropdownContent.appendChild(itemElement);
-          });
-        }
-        
-        // Show addition/subtraction second
-        if (addSubtract.length > 0) {
-          const asHeader = document.createElement("div");
-          asHeader.className = "dropdown-header";
-          asHeader.textContent = "การบวก/ลบ";
-          asHeader.style.marginTop = "10px";
-          asHeader.style.fontSize = "0.8rem";
-          asHeader.style.color = "#4361ee";
-          dropdownContent.appendChild(asHeader);
-          
-          addSubtract.forEach(operation => {
-            const itemElement = document.createElement("div");
-            itemElement.className = "dropdown-item";
-            itemElement.style.paddingLeft = "20px";
-            itemElement.textContent = operation;
-            dropdownContent.appendChild(itemElement);
-          });
-        }
-        
-        // Add total result
-        const totalElement = document.createElement("div");
-        totalElement.className = "dropdown-item";
-        totalElement.style.fontWeight = "600";
-        totalElement.style.borderTop = "1px solid #f0f0f0";
-        totalElement.style.marginTop = "10px";
-        totalElement.style.backgroundColor = "#f8f9fa";
-        totalElement.textContent = `ผลลัพธ์สุดท้าย = ${result.toFixed(2)}`;
-        dropdownContent.appendChild(totalElement);
-      } else {
-        // If no operations found, show the expression itself
-        const itemElement = document.createElement("div");
-        itemElement.className = "dropdown-item";
-        itemElement.textContent = `${originalExpression} = ${result.toFixed(2)}`;
-        dropdownContent.appendChild(itemElement);
-      }
-      
-      // Add edit option
-      const editElement = document.createElement("div");
-      editElement.className = "dropdown-item edit-item";
-      editElement.innerHTML = '<i class="fas fa-edit"></i> แก้ไขการคำนวณ';
-      dropdownContent.appendChild(editElement);
-    }
-
-    function editInputValue(input) {
-      const data = currentInputData.get(input);
-      if (data) {
-        input.value = data.originalExpression;
-        input.classList.add("input-edit-mode");
-        input.focus();
-        input.select();
-      }
+      cell.appendChild(input);
+      return { cell, input };
     }
 
     function addRow() {
       const row = document.createElement("tr");
-
       let rowIndex = inputRefs.length;
 
-      const { cell: prodCell, input: prodInput, dropdownToggle: prodDropdownToggle, dropdownContent: prodDropdownContent, setHandler: setProdHandler } = createInputCell(() => {
+      const { cell: prodCell, input: prodInput } = createInputCell(() => {
         updateCalculatedValues();
-        inputRefs[rowIndex][1].focus();
+        inputRefs[rowIndex][1].focus(); // move to right cell
       });
-
-      const { cell: matCell, input: matInput, dropdownToggle: matDropdownToggle, dropdownContent: matDropdownContent, setHandler: setMatHandler } = createInputCell(() => {
+      const { cell: matCell, input: matInput } = createInputCell(() => {
         updateCalculatedValues();
+        // move to next row left cell
         if (inputRefs[rowIndex + 1]) {
+          inputRefs[rowIndex + 1][0].focus();
+        } else {
+          addRow();
           inputRefs[rowIndex + 1][0].focus();
         }
       });
 
       const gapCell = document.createElement("td");
       gapCell.className = "calculated-cell";
-      
       const percentCell = document.createElement("td");
       percentCell.className = "calculated-cell";
 
@@ -671,8 +277,6 @@
       table.appendChild(row);
 
       inputRefs.push([prodInput, matInput]);
-      setProdHandler();
-      setMatHandler();
 
       function updateCalculatedValues() {
         const prodValue = parseFloat(prodInput.value);
@@ -703,20 +307,12 @@
         table.deleteRow(0);
       }
       inputRefs.length = 0;
-      currentInputData.clear();
       for (let i = 0; i < 10; i++) addRow();
+      inputRefs[0][0].focus();
     }
 
-    // Close dropdown when clicking elsewhere
-    document.addEventListener("click", function(e) {
-      if (fixedDropdown.style.display === "block" && !e.target.closest(".dropdown-toggle")) {
-        fixedDropdown.style.display = "none";
-        activeDropdownToggle = null;
-      }
-    });
-
-    // Initialize with 10 rows
     for (let i = 0; i < 10; i++) addRow();
+    inputRefs[0][0].focus();
   </script>
 </body>
 </html>
