@@ -12,6 +12,8 @@
             --secondary: #64748b;
             --success: #10b981;
             --danger: #ef4444;
+            --warning-soft: #fff7ed;
+            --warning-border: #fb923c;
             --bg: #f1f5f9;
             --card-bg: #ffffff;
             --text-main: #1e293b;
@@ -103,9 +105,36 @@
         .weight-input { text-align: center; background: #f8fafc; width: 100%; border: 1px solid transparent; border-radius: 6px; padding: 4px; }
         .weight-input:focus { background: #fff; border-color: var(--primary); outline: none; }
         
-        .time-badge { display: inline-block; width: 85%; padding: 4px 0; border-radius: 6px; font-weight: 600; font-size: 14px; }
+        .time-badge { 
+            display: inline-block; 
+            width: 85%; 
+            padding: 4px 0; 
+            border-radius: 6px; 
+            font-weight: 600; 
+            font-size: 14px; 
+            position: relative;
+            cursor: help;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
         .badge-start { background: #f0fdf4; color: #166534; }
         .badge-end { background: #eff6ff; color: #1e40af; }
+
+        .time-badge.is-break-affected {
+            background-color: var(--warning-soft) !important;
+            border-color: var(--warning-border) !important;
+            color: #c2410c !important;
+        }
+
+        .time-badge:hover::after {
+            content: attr(data-tooltip);
+            position: absolute; bottom: 125%; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 6px 12px; border-radius: 8px;
+            font-size: 12px; white-space: nowrap; z-index: 100;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2); pointer-events: none;
+            opacity: 0; animation: fadeIn 0.2s forwards;
+        }
+        .time-badge[data-tooltip=""]::after { display: none; }
 
         .bottom-section { flex-shrink: 0; height: 90px; margin-bottom: 20px; }
         .timeline-bar { display: flex; height: 35px; background: #e2e8f0; border-radius: 8px; overflow: hidden; margin-top: 5px; }
@@ -115,43 +144,31 @@
             background: var(--primary); color: white; border: none;
             width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
             font-size: 20px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
         }
         .btn-reset { 
             background: #fff1f2; color: var(--danger); border: 1px solid var(--danger); 
             padding: 5px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
-            transition: 0.2s;
         }
-        .btn-reset:hover { background: var(--danger); color: white; }
 
-        /* Custom Modal UI */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
             display: none; align-items: center; justify-content: center; z-index: 1000;
-            animation: fadeIn 0.2s ease-out;
         }
         .modal-content {
             background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 380px;
-            text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-            transform: translateY(-20px); animation: slideDown 0.3s forwards;
+            text-align: center; transform: translateY(-20px); animation: slideDown 0.3s forwards;
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideDown { to { transform: translateY(0); } }
 
-        .modal-icon { font-size: 40px; margin-bottom: 10px; display: block; }
-        .modal-title { font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
-        .modal-text { font-size: 14px; color: var(--secondary); margin-bottom: 20px; }
-        .modal-actions { display: flex; gap: 10px; justify-content: center; }
-        
-        .btn { padding: 8px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn { padding: 8px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
         .btn-cancel { background: #f1f5f9; color: var(--secondary); }
         .btn-confirm { background: var(--danger); color: white; }
 
-        /* Footer Style */
         #copyright-notice {
             position: absolute; bottom: -5px; width: 100%; text-align: center;
-            font-size: 10px; color: var(--secondary); opacity: 0.7; letter-spacing: 0.5px;
+            font-size: 10px; color: var(--secondary); opacity: 0.7;
         }
     </style>
 </head>
@@ -159,22 +176,19 @@
 
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-content">
-        <!--<span class="modal-icon">♻️</span>-->
-        <div class="modal-title">ยืนยันการคืนค่า?</div>
-        <div class="modal-text">ข้อมูลทั้งหมดที่คุณกรอกไว้จะถูกลบ <br>และตารางจะกลับไปเริ่มต้นใหม่</div>
-        <div class="modal-actions">
+        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">ยืนยันการคืนค่า?</div>
+        <div style="font-size: 14px; color: var(--secondary); margin-bottom: 20px;">ข้อมูลทั้งหมดที่คุณกรอกไว้จะถูกลบ</div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
             <button class="btn btn-cancel" onclick="closeModal()">ยกเลิก</button>
             <button class="btn btn-confirm" onclick="confirmReset()">ตกลง คืนค่า</button>
         </div>
     </div>
 </div>
 
-<div class="app-container" id="mainApp">
+<div class="app-container">
     <header>
-        <div>
-            <h1>ระบบคำนวณเทียบบัญญัติไตรยางค์ <span class="subtitle">| Rule of Three</span></h1>
-        </div>
-        <button id="resetButton" class="btn-reset" onclick="openModal()">คืนค่า</button>
+        <h1>ระบบคำนวณเทียบบัญญัติไตรยางค์ <span class="subtitle">| Rule of Three</span></h1>
+        <button class="btn-reset" onclick="openModal()">คืนค่า</button>
     </header>
 
     <div class="top-row">
@@ -203,14 +217,9 @@
             <button id="addRowBtn" class="btn-add">+</button>
         </div>
         <div class="table-wrapper">
-            <table id="masterTable">
+            <table>
                 <thead>
-                    <tr>
-                        <th style="width: 60px;">#</th>
-                        <th>น้ำหนัก (กก.)</th>
-                        <th>เริ่มผลิต</th>
-                        <th>เสร็จ</th>
-                    </tr>
+                    <tr><th style="width: 60px;">#</th><th>น้ำหนัก (กก.)</th><th>เริ่มผลิต</th><th>เสร็จ</th></tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
@@ -221,7 +230,6 @@
         <div class="card-title">🎞️ ไทม์ไลน์การผลิต</div>
         <div id="timeline" class="timeline-bar"></div>
     </div>
-
     <div id="copyright-notice"></div>
 </div>
 
@@ -230,26 +238,16 @@
     let currentTotalItems = INITIAL_ROWS;
     const colors = ['#6366f1', '#8b5cf6', '#d946ef', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#475569'];
 
-    // --- Decryption & Footer Injection (Fixed Encoding) ---
+    // License System
     (function() {
-        const _0x4f2a = "wqkgMjAyNSBSdWxlIG9mIFRocmVlIGJ5IE5BTUpJVA=="; // Base64
+        const _0x4f2a = "wqkgMjAyNSBSdWxlIG9mIFRocmVlIGJ5IE5BTUpJVA==";
         try {
-            // แก้ไขปัญหา Character Encoding (ตัว Â)
             const decoded = decodeURIComponent(escape(atob(_0x4f2a))); 
-            
             document.addEventListener('DOMContentLoaded', () => {
                 const footer = document.getElementById('copyright-notice');
                 if (footer) footer.innerText = decoded;
-                
-                const target = document.querySelector('.app-container');
-                const observer = new MutationObserver(() => {
-                    if (!document.getElementById('copyright-notice')) {
-                        location.reload();
-                    }
-                });
-                observer.observe(target, { childList: true });
             });
-        } catch (e) { console.error("License Error"); }
+        } catch (e) {}
     })();
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -260,43 +258,39 @@
         document.getElementById('addRowBtn').addEventListener('click', addNewRow);
     });
 
-    // --- Modal Logic (Enhanced with Keyboard Support) ---
     function openModal() { 
+        // นำ Focus ออกจากปุ่มเดิมเพื่อป้องกัน Enter ซ้ำซ้อน
+        if (document.activeElement) document.activeElement.blur();
         document.getElementById('confirmModal').style.display = 'flex'; 
-        window.addEventListener('keydown', handleModalKeys);
+        window.addEventListener('keydown', handleModalKeys); 
     }
 
     function closeModal() { 
         document.getElementById('confirmModal').style.display = 'none'; 
-        window.removeEventListener('keydown', handleModalKeys);
+        window.removeEventListener('keydown', handleModalKeys); 
     }
 
-    function handleModalKeys(e) {
-        if (document.getElementById('confirmModal').style.display === 'flex') {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                confirmReset();
-            } else if (e.key === 'Escape') {
-                closeModal();
-            }
-        }
+    function handleModalKeys(e) { 
+        if(e.key === 'Enter') {
+            e.preventDefault(); // หยุด Default Action ของ Enter
+            confirmReset(); 
+        } else if(e.key === 'Escape') {
+            closeModal(); 
+        } 
     }
-    
+
     function confirmReset() {
-        document.getElementById('startTime').value = '08:00';
+        document.getElementById('startTime').value = '08:00'; 
         document.getElementById('endTime').value = '17:00';
-        document.getElementById('breakStart').value = '12:00';
+        document.getElementById('breakStart').value = '12:00'; 
         document.getElementById('breakEnd').value = '13:00';
-        initTable();
-        document.querySelector('.table-wrapper').scrollTop = 0;
-        closeModal();
+        initTable(); 
+        closeModal(); 
     }
 
-    // --- Table & Calculation Logic ---
     function initTable() {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        currentTotalItems = INITIAL_ROWS;
+        tbody.innerHTML = ''; currentTotalItems = INITIAL_ROWS;
         for (let i = 1; i <= INITIAL_ROWS; i++) createRow(i);
         calculate();
     }
@@ -307,15 +301,14 @@
         row.innerHTML = `
             <td class="row-idx">${index}</td>
             <td><input type="text" class="weight-input" id="weight-${index}" placeholder="0.0" oninput="handleInput(this)" onkeypress="handleEnter(event, ${index})"></td>
-            <td><span id="start-${index}" class="time-badge badge-start">-</span></td>
-            <td><span id="end-${index}" class="time-badge badge-end">-</span></td>
+            <td><span id="start-${index}" class="time-badge badge-start" data-tooltip="">-</span></td>
+            <td><span id="end-${index}" class="time-badge badge-end" data-tooltip="">-</span></td>
         `;
         tbody.appendChild(row);
     }
 
     function addNewRow() {
-        currentTotalItems++;
-        createRow(currentTotalItems);
+        currentTotalItems++; createRow(currentTotalItems);
         const wrapper = document.querySelector('.table-wrapper');
         wrapper.scrollTop = wrapper.scrollHeight;
         document.getElementById(`weight-${currentTotalItems}`).focus();
@@ -343,16 +336,22 @@
         }
     }
 
-    function timeToMin(t) {
-        const [h, m] = t.split(':').map(Number);
-        return h * 60 + m;
+    function timeToMin(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+    function minToTime(m) {
+        const total = Math.floor(m);
+        const h = Math.floor(total / 60) % 24;
+        const min = total % 60;
+        return `${h.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}`;
     }
 
-    function minToTime(m) {
-        m = Math.floor(m);
-        const h = Math.floor(m / 60) % 24;
-        const min = m % 60;
-        return `${h.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}`;
+    function formatDuration(minutes) {
+        if (minutes <= 0) return "0 นาที";
+        const h = Math.floor(minutes / 60);
+        const m = Math.round(minutes % 60);
+        let res = "";
+        if (h > 0) res += `${h} ชั่วโมง `;
+        if (m > 0 || h === 0) res += `${m} นาที`;
+        return res.trim();
     }
 
     function calculate() {
@@ -378,8 +377,7 @@
         for(let i=1; i<=currentTotalItems; i++) {
             let el = document.getElementById(`weight-${i}`);
             let v = el ? parseFloat(el.value) || 0 : 0;
-            weights.push({id: i, val: v});
-            totalWeight += v;
+            weights.push({id: i, val: v}); totalWeight += v;
         }
         document.getElementById('totalWeight').innerText = totalWeight.toLocaleString();
 
@@ -387,36 +385,75 @@
         timeline.innerHTML = '';
 
         if(totalMinutes <= 0 || totalWeight <= 0) {
-            for(let i=1; i<=currentTotalItems; i++) {
-                const s = document.getElementById(`start-${i}`);
-                const e = document.getElementById(`end-${i}`);
-                if(s) s.innerText = "-"; if(e) e.innerText = "-";
-            }
+            document.querySelectorAll('.time-badge').forEach(b => { b.innerText = "-"; b.classList.remove('is-break-affected'); b.setAttribute('data-tooltip', ''); });
             return;
         }
 
         let currentSlot = 0; let currentTime = workSlots[0].s;
+        
         weights.forEach((item, idx) => {
             const sEl = document.getElementById(`start-${item.id}`);
             const eEl = document.getElementById(`end-${item.id}`);
-            if(item.val === 0) { if(sEl) sEl.innerText = "-"; if(eEl) eEl.innerText = "-"; return; }
+            if(!sEl) return;
+
+            if(item.val === 0) {
+                sEl.innerText = "-"; eEl.innerText = "-";
+                sEl.classList.remove('is-break-affected'); eEl.classList.remove('is-break-affected');
+                sEl.setAttribute('data-tooltip', ''); eEl.setAttribute('data-tooltip', '');
+                return;
+            }
 
             let need = (item.val / totalWeight) * totalMinutes;
             let actualStart = currentTime;
-            while (need > 0.01 && currentSlot < workSlots.length) {
+            let breakTaken = 0;
+
+            let remainingNeed = need;
+            while (remainingNeed > 0.000001 && currentSlot < workSlots.length) {
                 let slotEnd = workSlots[currentSlot].e;
                 let avail = slotEnd - currentTime;
-                if (avail >= need) { currentTime += need; need = 0; } 
-                else { need -= avail; currentSlot++; if (currentSlot < workSlots.length) currentTime = workSlots[currentSlot].s; else currentTime = slotEnd; }
+                if (avail >= remainingNeed) {
+                    currentTime += remainingNeed;
+                    remainingNeed = 0;
+                } else {
+                    remainingNeed -= avail;
+                    currentSlot++;
+                    if (currentSlot < workSlots.length) {
+                        breakTaken += (workSlots[currentSlot].s - slotEnd);
+                        currentTime = workSlots[currentSlot].s;
+                    } else {
+                        currentTime = slotEnd;
+                    }
+                }
             }
-            let actualEnd = currentTime;
-            if(sEl) sEl.innerText = minToTime(actualStart);
-            if(eEl) eEl.innerText = minToTime(actualEnd);
 
-            let pct = (item.val / totalWeight) * 100;
+            let actualEnd = currentTime;
+            const displayStartStr = minToTime(actualStart);
+            const displayEndStr = minToTime(actualEnd);
+            const displayStartTotal = Math.floor(actualStart);
+            const displayEndTotal = Math.floor(actualEnd);
+            const diffMin = displayEndTotal - displayStartTotal - breakTaken;
+            
+            let tooltip = `ใช้เวลาผลิต ${formatDuration(Math.max(0, diffMin))}`;
+            
+            if(breakTaken > 0) {
+                tooltip += ` (รวมพักเที่ยง ${formatDuration(breakTaken)})`;
+                sEl.classList.add('is-break-affected');
+                eEl.classList.add('is-break-affected');
+                sEl.innerText = " " + displayStartStr;
+                eEl.innerText = " " + displayEndStr;
+            } else {
+                sEl.classList.remove('is-break-affected');
+                eEl.classList.remove('is-break-affected');
+                sEl.innerText = displayStartStr;
+                eEl.innerText = displayEndStr;
+            }
+
+            sEl.setAttribute('data-tooltip', tooltip);
+            eEl.setAttribute('data-tooltip', tooltip);
+
             let bar = document.createElement('div');
             bar.className = 'timeline-segment';
-            bar.style.width = pct + '%';
+            bar.style.width = (item.val / totalWeight * 100) + '%';
             bar.style.backgroundColor = colors[idx % colors.length];
             bar.innerText = item.id;
             timeline.appendChild(bar);
