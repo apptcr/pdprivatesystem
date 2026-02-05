@@ -159,7 +159,7 @@
 
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-content">
-        <span class="modal-icon">♻️</span>
+        <!--<span class="modal-icon">♻️</span>-->
         <div class="modal-title">ยืนยันการคืนค่า?</div>
         <div class="modal-text">ข้อมูลทั้งหมดที่คุณกรอกไว้จะถูกลบ <br>และตารางจะกลับไปเริ่มต้นใหม่</div>
         <div class="modal-actions">
@@ -234,7 +234,7 @@
     (function() {
         const _0x4f2a = "wqkgMjAyNSBSdWxlIG9mIFRocmVlIGJ5IE5BTUpJVA=="; // Base64
         try {
-            // แก้ไขปัญหาตัว Â โดยการใช้ decodeURIComponent(escape(atob(...)))
+            // แก้ไขปัญหา Character Encoding (ตัว Â)
             const decoded = decodeURIComponent(escape(atob(_0x4f2a))); 
             
             document.addEventListener('DOMContentLoaded', () => {
@@ -260,8 +260,27 @@
         document.getElementById('addRowBtn').addEventListener('click', addNewRow);
     });
 
-    function openModal() { document.getElementById('confirmModal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('confirmModal').style.display = 'none'; }
+    // --- Modal Logic (Enhanced with Keyboard Support) ---
+    function openModal() { 
+        document.getElementById('confirmModal').style.display = 'flex'; 
+        window.addEventListener('keydown', handleModalKeys);
+    }
+
+    function closeModal() { 
+        document.getElementById('confirmModal').style.display = 'none'; 
+        window.removeEventListener('keydown', handleModalKeys);
+    }
+
+    function handleModalKeys(e) {
+        if (document.getElementById('confirmModal').style.display === 'flex') {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                confirmReset();
+            } else if (e.key === 'Escape') {
+                closeModal();
+            }
+        }
+    }
     
     function confirmReset() {
         document.getElementById('startTime').value = '08:00';
@@ -273,6 +292,7 @@
         closeModal();
     }
 
+    // --- Table & Calculation Logic ---
     function initTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -406,4 +426,3 @@
 
 </body>
 </html>
-
