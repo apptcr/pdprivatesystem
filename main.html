@@ -21,10 +21,10 @@
             top: 0; left: 0; width: 100%; height: 100%;
             display: none; overflow: hidden !important;
         }
-        .view-content.active { display: block; }
+        /* บังคับให้คลาส active แสดงผล */
+        .view-content.active { display: block !important; }
         iframe { width: 100%; height: 100%; border: none; display: block; overflow: hidden !important; }
 
-        /* Floating System */
         .fab-wrapper {
             position: fixed; bottom: 20px; right: 20px;
             display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; z-index: 9999;
@@ -91,14 +91,32 @@
             fabOptions.classList.toggle('show');
         }
 
-        function switchTab(viewId, hashName) {
-            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
+        function switchTab(viewId, hashName, isInitial = false) {
+            // ปิดการแสดงผลหน้าอื่นทั้งหมด
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // เปิดหน้าปัจจุบัน
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.classList.add('active');
+            }
+            
+            // บันทึกสถานะ
             history.replaceState(null, null, "#" + hashName);
             localStorage.setItem('lastTab', hashName);
+            
+            // ปรับขนาด iframe
             fixIframeScroll();
-            if(fabOptions.classList.contains('show')) toggleFab();
-            logActivity(`Switch to: ${hashName}`);
+
+            // ปิดเมนู FAB (ถ้าไม่ได้มาจากการเปิดหน้าครั้งแรก)
+            if(!isInitial && fabOptions.classList.contains('show')) {
+                toggleFab();
+            }
+
+            // ส่ง Log (ข้ามการส่งซ้ำตอนโหลดหน้าแรกถ้าคุณต้องการ แต่ปกติส่งไว้ดีกว่า)
+            logActivity(isInitial ? `Initial Access: ${hashName}` : `Switch to: ${hashName}`);
         }
 
         function fixIframeScroll() {
@@ -116,18 +134,25 @@
             const hash = window.location.hash.replace('#', '');
             const lastTab = localStorage.getItem('lastTab');
             const target = hash || lastTab || 'yield';
-            if (target === 'tri') switchTab('tri-view', 'tri');
-            else switchTab('yield-view', 'yield');
+
+            if (target === 'tri') {
+                switchTab('tri-view', 'tri', true);
+            } else {
+                switchTab('yield-view', 'yield', true);
+            }
         }
 
         async function logActivity(behavior = "") {
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
-            const ENTRY_MAIN = "entry.1736643048"; // ช่องหลัก (เก็บข้อมูลเครื่องและ IP)
-            const ENTRY_BEHAVIOR = "entry.321341751"; // ช่องที่คุณเพิ่งสร้างใหม่
+            const ENTRY_MAIN = "entry.1736643048"; 
+            const ENTRY_BEHAVIOR = "entry.321341751"; 
 
             try {
-                let visitorId = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
-                localStorage.setItem('visitorId', visitorId);
+                let visitorId = localStorage.getItem('visitorId');
+                if (!visitorId) {
+                    visitorId = 'ID-' + Math.random().toString(36).substr(2, 7).toUpperCase();
+                    localStorage.setItem('visitorId', visitorId);
+                }
 
                 const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
@@ -144,21 +169,22 @@
                 else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
 
                 const platformInfo = `[${device}/${browser}]`;
-
-                // การส่งข้อมูล: คั่นด้วยเครื่องหมาย | เพื่อให้ Sheets แยกคอลัมน์ได้ง่าย
-                // เราจะส่ง VisitorId, Platform และ IP รวมกันในช่องแรกโดยคั่นด้วย |
                 const compositeData = `${visitorId}|${platformInfo}|${ipInfo}`;
                 
-                const finalUrl = `${FORM_URL}?${ENTRY_MAIN}=${encodeURIComponent(compositeData)}&${ENTRY_BEHAVIOR}=${encodeURIComponent(behavior || 'Access')}&submit=Submit`;
+                const finalUrl = `${FORM_URL}?${ENTRY_MAIN}=${encodeURIComponent(compositeData)}&${ENTRY_BEHAVIOR}=${encodeURIComponent(behavior)}&submit=Submit`;
                 
                 const img = new Image();
                 img.src = finalUrl;
             } catch (error) {
-                console.error("Log error");
+                console.log("Analytics muted");
             }
         }
 
-        window.addEventListener('load', checkInitialTab);
+        // เริ่มต้นการทำงาน
+        window.addEventListener('load', () => {
+            checkInitialTab();
+            setTimeout(fixIframeScroll, 500); // หน่วงเวลาให้ iframe โหลดเสร็จค่อยซ่อม scroll
+        });
         window.addEventListener('resize', fixIframeScroll);
     </script>
 </body>
