@@ -47,128 +47,80 @@
             font-size: 1rem; transition: 0.2s; position: relative;
         }
         .fab-btn:hover { background: var(--accent); color: white; }
-        .fab-btn::after {
-            content: attr(data-label); position: absolute; right: 50px;
-            background: rgba(0,0,0,0.7); color: white; padding: 4px 10px;
-            border-radius: 4px; font-size: 0.75rem; white-space: nowrap;
-            opacity: 0; pointer-events: none; transition: 0.2s;
-        }
-        .fab-btn:hover::after { opacity: 1; }
     </style>
 </head>
 <body>
 
     <div class="view-container">
-        <div id="yield-view" class="view-content">
-            <iframe id="yield-frame" src="yieldcal.html" scrolling="no"></iframe>
-        </div>
-        <div id="tri-view" class="view-content">
-            <iframe id="tri-frame" src="ruleofthree.html" scrolling="no"></iframe>
-        </div>
+        <div id="yield-view" class="view-content"><iframe id="yield-frame" src="yieldcal.html"></iframe></div>
+        <div id="tri-view" class="view-content"><iframe id="tri-frame" src="ruleofthree.html"></iframe></div>
     </div>
 
     <div class="fab-wrapper">
-        <button class="fab-main" id="fabMain" onclick="toggleFab()">
-            <i class="fas fa-th-large"></i>
-        </button>
+        <button class="fab-main" id="fabMain" onclick="toggleFab()"><i class="fas fa-th-large"></i></button>
         <div class="fab-options" id="fabOptions">
-            <button class="fab-btn" data-label="Rule of Three" onclick="switchTab('tri-view', 'tri')">
-                <i class="fas fa-calculator"></i>
-            </button>
-            <button class="fab-btn" data-label="Yield Calculator" onclick="switchTab('yield-view', 'yield')">
-                <i class="fas fa-chart-line"></i>
-            </button>
+            <button class="fab-btn" data-label="Rule of Three" onclick="switchTab('tri-view', 'tri')"><i class="fas fa-calculator"></i></button>
+            <button class="fab-btn" data-label="Yield Calculator" onclick="switchTab('yield-view', 'yield')"><i class="fas fa-chart-line"></i></button>
         </div>
     </div>
 
     <script>
-        const fabMain = document.getElementById('fabMain');
-        const fabOptions = document.getElementById('fabOptions');
-
         function toggleFab() {
-            fabMain.classList.toggle('open');
-            fabOptions.classList.toggle('show');
+            document.getElementById('fabMain').classList.toggle('open');
+            document.getElementById('fabOptions').classList.toggle('show');
         }
 
         function switchTab(viewId, hashName, isInitial = false) {
-            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
-            const targetView = document.getElementById(viewId);
-            if (targetView) targetView.classList.add('active');
-            
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
             history.replaceState(null, null, "#" + hashName);
             localStorage.setItem('lastTab', hashName);
-            
-            fixIframeScroll();
-            if(!isInitial && fabOptions.classList.contains('show')) toggleFab();
-
+            if(!isInitial) toggleFab();
             logActivity(isInitial ? `Access: ${hashName}` : `Switch to: ${hashName}`);
-        }
-
-        function fixIframeScroll() {
-            const frames = ['yield-frame', 'tri-frame'];
-            frames.forEach(id => {
-                const f = document.getElementById(id);
-                if (f) {
-                    f.style.height = '100%';
-                    try { f.contentWindow.document.body.style.overflow = 'hidden'; } catch(e) {}
-                }
-            });
-        }
-
-        function checkInitialTab() {
-            const hash = window.location.hash.replace('#', '');
-            const lastTab = localStorage.getItem('lastTab');
-            const target = hash || lastTab || 'yield';
-            if (target === 'tri') switchTab('tri-view', 'tri', true);
-            else switchTab('yield-view', 'yield', true);
         }
 
         async function logActivity(behavior = "") {
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
-            const ENTRY_SYSTEM = "entry.1736643048"; 
-            const ENTRY_BEHAVIOR = "entry.321341751";
+            
+            // *** ใส่ Entry ID ให้ตรงตามที่สร้างในฟอร์มนะคะ ***
+            const ENTRY_ID = "entry.1736643048";     // ช่อง ID เครื่อง
+            const ENTRY_PLATFORM = "entry.321341751"; // ช่อง Platform (ไปหามาใส่แทน XXXXXXX)
+            const ENTRY_IP = "entry.907938643";       // ช่อง IP (ไปหามาใส่แทน YYYYYYY)
+            const ENTRY_BEHAVIOR = "entry.1442360427"; // ช่องพฤติกรรม
 
             try {
-                let visitorId = localStorage.getItem('visitorId');
-                if (!visitorId) {
-                    visitorId = 'ID-' + Math.random().toString(36).substr(2, 7).toUpperCase();
-                    localStorage.setItem('visitorId', visitorId);
-                }
+                let visitorId = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
+                localStorage.setItem('visitorId', visitorId);
 
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
                 const ipInfo = `${data.ip} (${data.city}, ${data.org})`;
 
                 const ua = navigator.userAgent;
-                let device = "PC";
-                if (/Android/i.test(ua)) device = "Android";
-                else if (/iPhone|iPad/i.test(ua)) device = "iOS";
-                else if (/Macintosh/i.test(ua)) device = "Mac";
-                
-                let browser = "Other";
-                if (ua.includes("Line/")) browser = "LINE";
-                else if (ua.includes("Chrome")) browser = "Chrome";
-                else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+                const device = /Android/i.test(ua) ? "Android" : (/iPhone|iPad/i.test(ua) ? "iOS" : "PC");
+                const browser = ua.includes("Line/") ? "LINE" : (ua.includes("Chrome") ? "Chrome" : "Safari");
+                const platform = `[${device}/${browser}]`;
 
-                const platformInfo = `[${device}/${browser}]`;
+                // ส่งข้อมูลด้วยโหมด 'no-cors' เพื่อไม่ให้ติดบล็อก
+                const params = new URLSearchParams();
+                params.append(ENTRY_ID, visitorId);
+                params.append(ENTRY_PLATFORM, platform);
+                params.append(ENTRY_IP, ipInfo);
+                params.append(ENTRY_BEHAVIOR, behavior);
 
-                // ส่งข้อมูลโดยคั่นด้วย | เพื่อให้แยกคอลัมน์ได้ใน Sheets
-                const compositeData = `${visitorId}|${platformInfo}|${ipInfo}`;
-                
-                const finalUrl = `${FORM_URL}?${ENTRY_SYSTEM}=${encodeURIComponent(compositeData)}&${ENTRY_BEHAVIOR}=${encodeURIComponent(behavior)}&submit=Submit`;
-                
-                const img = new Image();
-                img.src = finalUrl;
-            } catch (error) {
-                console.log("Analytics muted");
-            }
+                fetch(FORM_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: params
+                });
+
+            } catch (e) { console.error("Log failed"); }
         }
 
-        window.addEventListener('load', () => {
-            checkInitialTab();
-            setTimeout(fixIframeScroll, 500);
-        });
-        window.addEventListener('resize', fixIframeScroll);
+        window.onload = () => {
+            const target = window.location.hash.replace('#', '') || localStorage.getItem('lastTab') || 'yield';
+            switchTab(target === 'tri' ? 'tri-view' : 'yield-view', target, true);
+        };
     </script>
 </body>
 </html>
