@@ -21,7 +21,6 @@
             top: 0; left: 0; width: 100%; height: 100%;
             display: none; overflow: hidden !important;
         }
-        /* บังคับให้คลาส active แสดงผล */
         .view-content.active { display: block !important; }
         iframe { width: 100%; height: 100%; border: none; display: block; overflow: hidden !important; }
 
@@ -61,10 +60,10 @@
 
     <div class="view-container">
         <div id="yield-view" class="view-content">
-            <iframe id="yield-frame" src="index.html" scrolling="no"></iframe>
+            <iframe id="yield-frame" src="yieldcal.html" scrolling="no"></iframe>
         </div>
         <div id="tri-view" class="view-content">
-            <iframe id="tri-frame" src="CalTri.html" scrolling="no"></iframe>
+            <iframe id="tri-frame" src="ruleofthree.html" scrolling="no"></iframe>
         </div>
     </div>
 
@@ -92,31 +91,17 @@
         }
 
         function switchTab(viewId, hashName, isInitial = false) {
-            // ปิดการแสดงผลหน้าอื่นทั้งหมด
-            document.querySelectorAll('.view-content').forEach(view => {
-                view.classList.remove('active');
-            });
-            
-            // เปิดหน้าปัจจุบัน
+            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             const targetView = document.getElementById(viewId);
-            if (targetView) {
-                targetView.classList.add('active');
-            }
+            if (targetView) targetView.classList.add('active');
             
-            // บันทึกสถานะ
             history.replaceState(null, null, "#" + hashName);
             localStorage.setItem('lastTab', hashName);
             
-            // ปรับขนาด iframe
             fixIframeScroll();
+            if(!isInitial && fabOptions.classList.contains('show')) toggleFab();
 
-            // ปิดเมนู FAB (ถ้าไม่ได้มาจากการเปิดหน้าครั้งแรก)
-            if(!isInitial && fabOptions.classList.contains('show')) {
-                toggleFab();
-            }
-
-            // ส่ง Log (ข้ามการส่งซ้ำตอนโหลดหน้าแรกถ้าคุณต้องการ แต่ปกติส่งไว้ดีกว่า)
-            logActivity(isInitial ? `Initial Access: ${hashName}` : `Switch to: ${hashName}`);
+            logActivity(isInitial ? `Access: ${hashName}` : `Switch to: ${hashName}`);
         }
 
         function fixIframeScroll() {
@@ -134,18 +119,14 @@
             const hash = window.location.hash.replace('#', '');
             const lastTab = localStorage.getItem('lastTab');
             const target = hash || lastTab || 'yield';
-
-            if (target === 'tri') {
-                switchTab('tri-view', 'tri', true);
-            } else {
-                switchTab('yield-view', 'yield', true);
-            }
+            if (target === 'tri') switchTab('tri-view', 'tri', true);
+            else switchTab('yield-view', 'yield', true);
         }
 
         async function logActivity(behavior = "") {
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
-            const ENTRY_MAIN = "entry.1736643048"; 
-            const ENTRY_BEHAVIOR = "entry.321341751"; 
+            const ENTRY_SYSTEM = "entry.1736643048"; 
+            const ENTRY_BEHAVIOR = "entry.321341751";
 
             try {
                 let visitorId = localStorage.getItem('visitorId');
@@ -162,6 +143,7 @@
                 let device = "PC";
                 if (/Android/i.test(ua)) device = "Android";
                 else if (/iPhone|iPad/i.test(ua)) device = "iOS";
+                else if (/Macintosh/i.test(ua)) device = "Mac";
                 
                 let browser = "Other";
                 if (ua.includes("Line/")) browser = "LINE";
@@ -169,9 +151,11 @@
                 else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
 
                 const platformInfo = `[${device}/${browser}]`;
+
+                // ส่งข้อมูลโดยคั่นด้วย | เพื่อให้แยกคอลัมน์ได้ใน Sheets
                 const compositeData = `${visitorId}|${platformInfo}|${ipInfo}`;
                 
-                const finalUrl = `${FORM_URL}?${ENTRY_MAIN}=${encodeURIComponent(compositeData)}&${ENTRY_BEHAVIOR}=${encodeURIComponent(behavior)}&submit=Submit`;
+                const finalUrl = `${FORM_URL}?${ENTRY_SYSTEM}=${encodeURIComponent(compositeData)}&${ENTRY_BEHAVIOR}=${encodeURIComponent(behavior)}&submit=Submit`;
                 
                 const img = new Image();
                 img.src = finalUrl;
@@ -180,10 +164,9 @@
             }
         }
 
-        // เริ่มต้นการทำงาน
         window.addEventListener('load', () => {
             checkInitialTab();
-            setTimeout(fixIframeScroll, 500); // หน่วงเวลาให้ iframe โหลดเสร็จค่อยซ่อม scroll
+            setTimeout(fixIframeScroll, 500);
         });
         window.addEventListener('resize', fixIframeScroll);
     </script>
