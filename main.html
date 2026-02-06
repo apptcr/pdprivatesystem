@@ -90,6 +90,7 @@
             localStorage.setItem('lastTab', hashName);
             fixIframeScroll();
             if(fabOptions.classList.contains('show')) toggleFab();
+            
             logActivity(`Switch to: ${hashName}`);
         }
 
@@ -114,40 +115,44 @@
         async function logActivity(extraDetail = "") {
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
             
-            // ใช้ IDs ที่คุณหามาได้จาก Source Code ของคุณ
             const E_ID = "entry.1736643048";
             const E_PLAT = "entry.321341751";
             const E_IP = "entry.907938643";
             const E_BEH = "entry.1442360427";
 
-            try {
-                let visitorId = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
-                localStorage.setItem('visitorId', visitorId);
+            // 1. ข้อมูลที่ดึงได้ทันที ไม่ต้องรอดึงจากเว็บอื่น
+            let visitorId = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
+            localStorage.setItem('visitorId', visitorId);
 
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
+            const ua = navigator.userAgent;
+            const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
+            const browser = ua.includes("Line/") ? "LINE" : (ua.includes("Chrome") ? "Chrome" : "Safari");
+            const platformInfo = `[${dev}/${browser}]`;
 
-                const ua = navigator.userAgent;
-                const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
-                const plat = `[${dev}]`;
-                const ipInfo = `${data.ip} (${data.city})`;
-
-                // วิธีส่งแบบ Image Beacon ตัวเดิมที่คุณยืนยันว่าใช้ได้
-                // แต่ครั้งนี้เราพ่วงไป 4 ตัวแปรเพื่อให้มันลงคนละคอลัมน์
+            // 2. ฟังก์ชันหลักสำหรับส่งข้อมูล (ส่งแบบ Image Beacon ที่คุณชอบ)
+            const sendToGoogle = (ipData = "Checking...") => {
                 const finalUrl = `${FORM_URL}?` + 
                     `${E_ID}=${encodeURIComponent(visitorId)}&` +
-                    `${E_PLAT}=${encodeURIComponent(plat)}&` +
-                    `${E_IP}=${encodeURIComponent(ipInfo)}&` +
+                    `${E_PLAT}=${encodeURIComponent(platformInfo)}&` +
+                    `${E_IP}=${encodeURIComponent(ipData)}&` +
                     `${E_BEH}=${encodeURIComponent(extraDetail || 'Access')}&` +
                     `submit=Submit`;
+                new Image().src = finalUrl;
+            };
 
-                const img = new Image();
-                img.src = finalUrl;
+            // 3. พยายามดึง IP ถ้าช้าเกิน 2.5 วินาที ให้ส่งข้อมูลส่วนอื่นเข้าไปก่อนทันที
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2500); 
 
+                const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+                const data = await response.json();
+                clearTimeout(timeoutId);
+                
+                sendToGoogle(`${data.ip} (${data.city})`); 
             } catch (error) {
-                // ถ้า fetch พลาด ให้ส่งแค่ Behavior อย่างน้อยข้อมูลก็ยังเข้า
-                const fallbackUrl = `${FORM_URL}?${E_BEH}=${encodeURIComponent("Error | " + extraDetail)}&submit=Submit`;
-                new Image().src = fallbackUrl;
+                // กรณีเน็ตช้า หรือ API ล่ม ข้อมูลช่องอื่น (ID, Platform, Behavior) จะยังต้องถูกส่ง
+                sendToGoogle("Timeout/Direct"); 
             }
         }
 
