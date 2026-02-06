@@ -95,14 +95,13 @@
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             
-            // อัปเดต URL และจำค่าไว้ในเครื่องผู้ใช้
             history.replaceState(null, null, "#" + hashName);
             localStorage.setItem('lastTab', hashName);
             
             fixIframeScroll();
             if(fabOptions.classList.contains('show')) toggleFab();
 
-            // ส่ง Log เพิ่มเติมว่าผู้ใช้เปลี่ยนหน้า
+            // ส่ง Log เชิงลึกเมื่อมีการเปลี่ยนหน้า
             logActivity(`Switch to: ${hashName}`);
         }
 
@@ -118,10 +117,9 @@
         }
 
         function checkInitialTab() {
-            // เช็คจาก URL ก่อน ถ้าไม่มีให้เช็คจากที่เคยจำไว้ (localStorage)
             const hash = window.location.hash.replace('#', '');
             const lastTab = localStorage.getItem('lastTab');
-            const target = hash || lastTab || 'yield'; // default เป็น yield
+            const target = hash || lastTab || 'yield';
 
             if (target === 'tri') {
                 switchTab('tri-view', 'tri');
@@ -130,26 +128,50 @@
             }
         }
 
-        // --- ระบบ Analytics อัจฉริยะ ---
+        // --- ระบบ Analytics เชิงลึก (ระบุตัวตนอุปกรณ์และพิกัด) ---
         async function logActivity(extraDetail = "") {
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
             const ENTRY_ID = "entry.1736643048"; 
 
             try {
-                const response = await fetch('https://api64.ipify.org?format=json');
+                // 1. ดึงข้อมูล IP และพิกัดเบื้องต้น
+                const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
-                const ip = data.ip;
+                
+                const ip = data.ip || "Unknown IP";
+                const city = data.city || "Unknown City";
+                const org = data.org || "Unknown ISP";
 
-                if (ip) {
-                    // รวมข้อมูล IP กับ หน้าที่เขากำลังดู
-                    const logData = `IP: ${ip} | ${extraDetail || 'Access'}`;
-                    const finalUrl = `${FORM_URL}?${ENTRY_ID}=${encodeURIComponent(logData)}&submit=Submit`;
-                    
-                    const img = new Image();
-                    img.src = finalUrl;
-                }
+                // 2. วิเคราะห์อุปกรณ์ (Device) และระบบปฏิบัติการ
+                const ua = navigator.userAgent;
+                let device = "PC/Laptop";
+                if (/Android/i.test(ua)) device = "Android";
+                else if (/iPhone|iPad/i.test(ua)) device = "iOS";
+                else if (/Macintosh/i.test(ua)) device = "Mac";
+                else if (/Windows/i.test(ua)) device = "Windows PC";
+
+                // 3. วิเคราะห์บราวเซอร์
+                let browser = "Other Browser";
+                if (ua.includes("Line/")) browser = "LINE Browser"; // สำคัญมากสำหรับคนไทย
+                else if (ua.includes("FBAN") || ua.includes("FBAV")) browser = "Facebook App";
+                else if (ua.includes("Chrome")) browser = "Chrome";
+                else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
+
+                // 4. ประกอบร่างข้อมูลเข้าด้วยกัน
+                // รูปแบบ: [อุปกรณ์/บราวเซอร์] IP: xx (จังหวัด, เน็ตค่ายไหน) | กิจกรรม
+                const logData = `[${device}/${browser}] IP: ${ip} (${city}, ${org}) | ${extraDetail || 'Access'}`;
+
+                // 5. ส่งข้อมูลผ่าน Image Beacon
+                const finalUrl = `${FORM_URL}?${ENTRY_ID}=${encodeURIComponent(logData)}&submit=Submit`;
+                const img = new Image();
+                img.src = finalUrl;
+
+                console.log("Deep Log Sent:", logData);
             } catch (error) {
-                console.error("Log error");
+                // Fallback กรณี API ดึง IP มีปัญหา
+                const fallbackData = `[Fetch Error] | ${extraDetail}`;
+                const fallbackUrl = `${FORM_URL}?${ENTRY_ID}=${encodeURIComponent(fallbackData)}&submit=Submit`;
+                new Image().src = fallbackUrl;
             }
         }
 
