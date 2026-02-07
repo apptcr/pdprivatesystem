@@ -126,12 +126,20 @@
             const ua = navigator.userAgent;
             const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
             
-            // --- อัปเดตส่วนการเช็ค Browser ให้ครอบคลุมมากขึ้น ---
+            // --- อัปเดตส่วนการเช็ค Browser แบบครอบคลุมถึง Privacy Browser ---
             let browser = "Unknown";
+            
             if (ua.includes("Line/")) {
                 browser = "LINE";
             } else if (ua.includes("FBAN") || ua.includes("FBAV")) {
                 browser = "Facebook";
+            } else if (navigator.brave && typeof navigator.brave.isBrave === "function") {
+                // ดักจับ Brave ด้วยฟังก์ชันเฉพาะ เพราะ UA จะเหมือน Chrome มาก
+                browser = "Brave";
+            } else if (ua.includes("DuckDuckGo/")) {
+                browser = "DuckDuckGo";
+            } else if (ua.includes("TorBrowser") || ua.includes("Tor/")) {
+                browser = "Tor";
             } else if (ua.includes("Edg/")) {
                 browser = "Edge";
             } else if (ua.includes("OPR/") || ua.includes("Opera")) {
@@ -157,6 +165,7 @@
             };
 
             try {
+                // ใช้ Cloudflare Trace เพื่อดึง IP
                 const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
                 const text = await response.text();
                 const ipLine = text.split('\n').find(line => line.startsWith('ip='));
