@@ -125,7 +125,25 @@
 
             const ua = navigator.userAgent;
             const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
-            const browser = ua.includes("Line/") ? "LINE" : (ua.includes("Chrome") ? "Chrome" : "Safari");
+            
+            // --- อัปเดตส่วนการเช็ค Browser ให้ครอบคลุมมากขึ้น ---
+            let browser = "Unknown";
+            if (ua.includes("Line/")) {
+                browser = "LINE";
+            } else if (ua.includes("FBAN") || ua.includes("FBAV")) {
+                browser = "Facebook";
+            } else if (ua.includes("Edg/")) {
+                browser = "Edge";
+            } else if (ua.includes("OPR/") || ua.includes("Opera")) {
+                browser = "Opera";
+            } else if (ua.includes("Firefox/") || ua.includes("FxiOS/")) {
+                browser = "Firefox";
+            } else if (ua.includes("Chrome") || ua.includes("CriOS")) {
+                browser = "Chrome";
+            } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
+                browser = "Safari";
+            }
+
             const platformInfo = `[${dev}/${browser}]`;
 
             const sendToGoogle = (ipData) => {
@@ -139,17 +157,12 @@
             };
 
             try {
-                // เปลี่ยนมาใช้ Cloudflare trace (เร็วและเสถียรกว่ามาก)
                 const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
                 const text = await response.text();
-                
-                // ดึงเฉพาะบรรทัดที่บอก IP
                 const ipLine = text.split('\n').find(line => line.startsWith('ip='));
                 const ipAddress = ipLine ? ipLine.split('=')[1] : "Unknown IP";
-                
                 sendToGoogle(ipAddress);
             } catch (error) {
-                // ถ้าดึงไม่ได้จริงๆ ให้ส่งค่าว่างหรือ Direct ไปก่อนเพื่อให้ช่องอื่นขึ้น
                 sendToGoogle("Direct Access");
             }
         }
