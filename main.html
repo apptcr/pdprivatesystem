@@ -24,6 +24,36 @@
         .view-content.active { display: block; }
         iframe { width: 100%; height: 100%; border: none; display: block; overflow: hidden !important; }
 
+        /* --- UI ส่วนลงทะเบียนชื่อ --- */
+        #name-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95); /* สีน้ำเงินเข้มโปร่งแสง */
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10000; visibility: hidden; opacity: 0; transition: 0.3s;
+        }
+        #name-overlay.show { visibility: visible; opacity: 1; }
+        .name-card {
+            background: white; padding: 30px; border-radius: 15px;
+            width: 90%; max-width: 350px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .name-card h2 { color: var(--primary); margin-bottom: 10px; font-size: 1.2rem; }
+        .name-card p { color: #666; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5; }
+        .name-card input {
+            width: 100%; padding: 12px; border: 2px solid #ddd;
+            border-radius: 8px; font-size: 1rem; margin-bottom: 10px;
+            outline: none; text-align: center; transition: 0.2s;
+        }
+        .name-card input:focus { border-color: var(--accent); }
+        .name-card button {
+            width: 100%; padding: 12px; background: var(--accent);
+            color: white; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 500; cursor: pointer; transition: 0.2s;
+        }
+        .name-card button:hover { background: #2980b9; }
+        .error-msg { color: #e74c3c; font-size: 0.8rem; margin-bottom: 10px; display: none; }
+
+        /* --- FAB Styles --- */
         .fab-wrapper {
             position: fixed; bottom: 20px; right: 20px;
             display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; z-index: 9999;
@@ -50,6 +80,16 @@
     </style>
 </head>
 <body>
+
+    <div id="name-overlay">
+        <div class="name-card">
+            <h2>ยินดีต้อนรับ</h2>
+            <p>กรุณาพิมพ์ <b>'ชื่อเล่น'</b> ของคุณ <br>เพื่อบันทึกข้อมูลการใช้งานครั้งแรก</p>
+            <div id="error-txt" class="error-msg">กรุณากรอกชื่อก่อนเริ่มงานนะคะ</div>
+            <input type="text" id="user-nickname" placeholder="ระบุชื่อเล่นที่นี่..." autocomplete="off">
+            <button onclick="saveInitialName()">ตกลง</button>
+        </div>
+    </div>
 
     <div class="view-container">
         <div id="yield-view" class="view-content">
@@ -83,6 +123,23 @@
             fabOptions.classList.toggle('show');
         }
 
+        // ระบบบันทึกชื่อจากหน้า UI ใหม่
+        function saveInitialName() {
+            const input = document.getElementById('user-nickname');
+            const error = document.getElementById('error-txt');
+            const name = input.value.trim();
+
+            if (name === "") {
+                error.style.display = "block";
+                input.style.borderColor = "#e74c3c";
+                return;
+            }
+
+            localStorage.setItem('staffName', name);
+            document.getElementById('name-overlay').classList.remove('show');
+            logActivity("Registered Name"); // ส่ง Log ครั้งแรกที่ลงทะเบียน
+        }
+
         function switchTab(viewId, hashName) {
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
@@ -106,6 +163,11 @@
         }
 
         function checkInitialTab() {
+            // เช็คว่าเคยลงชื่อหรือยัง
+            if (!localStorage.getItem('staffName')) {
+                document.getElementById('name-overlay').classList.add('show');
+            }
+
             const hash = window.location.hash.replace('#', '');
             const lastTab = localStorage.getItem('lastTab');
             const target = hash || lastTab || 'yield';
@@ -120,54 +182,34 @@
             const E_IP = "entry.907938643";
             const E_BEH = "entry.1442360427";
 
-            // --- ระบบจัดการชื่อ/ID เพื่อลดภาระการทำ VLOOKUP ---
             let staffName = localStorage.getItem('staffName');
-
+            
+            // ถ้ายังไม่มีชื่อ (เช่นกรณีที่ LogActivity ทำงานก่อน UI ปิด) ให้ใช้ ID สำรองไปก่อน
             if (!staffName) {
-                // ถ้ายังไม่เคยลงชื่อ ให้ถามทันที
-                const input = prompt("กรุณาพิมพ์ 'ชื่อเล่น' ของคุณ \nเพื่อบันทึกข้อมูลการใช้งานครั้งแรก");
-                if (input && input.trim() !== "") {
-                    staffName = input.trim();
-                    localStorage.setItem('staffName', staffName);
-                } else {
-                    // ถ้าไม่ยอมพิมพ์ ให้ใช้ ID สุ่มแบบเดิมไปก่อน
-                    staffName = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
-                    localStorage.setItem('visitorId', staffName);
-                }
+                staffName = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
+                localStorage.setItem('visitorId', staffName);
             }
 
             const ua = navigator.userAgent;
             const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
             
-            // การเช็ค Browser แบบละเอียดครอบคลุม Privacy Browser
             let browser = "Unknown";
-            if (ua.includes("Line/")) {
-                browser = "LINE";
-            } else if (ua.includes("FBAN") || ua.includes("FBAV")) {
-                browser = "Facebook";
-            } else if (navigator.brave && typeof navigator.brave.isBrave === "function") {
-                browser = "Brave";
-            } else if (ua.includes("DuckDuckGo/")) {
-                browser = "DuckDuckGo";
-            } else if (ua.includes("TorBrowser") || ua.includes("Tor/")) {
-                browser = "Tor";
-            } else if (ua.includes("Edg/")) {
-                browser = "Edge";
-            } else if (ua.includes("OPR/") || ua.includes("Opera")) {
-                browser = "Opera";
-            } else if (ua.includes("Firefox/") || ua.includes("FxiOS/")) {
-                browser = "Firefox";
-            } else if (ua.includes("Chrome") || ua.includes("CriOS")) {
-                browser = "Chrome";
-            } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
-                browser = "Safari";
-            }
+            if (ua.includes("Line/")) { browser = "LINE"; }
+            else if (ua.includes("FBAN") || ua.includes("FBAV")) { browser = "Facebook"; }
+            else if (navigator.brave && typeof navigator.brave.isBrave === "function") { browser = "Brave"; }
+            else if (ua.includes("DuckDuckGo/")) { browser = "DuckDuckGo"; }
+            else if (ua.includes("TorBrowser") || ua.includes("Tor/")) { browser = "Tor"; }
+            else if (ua.includes("Edg/")) { browser = "Edge"; }
+            else if (ua.includes("OPR/") || ua.includes("Opera")) { browser = "Opera"; }
+            else if (ua.includes("Firefox/") || ua.includes("FxiOS/")) { browser = "Firefox"; }
+            else if (ua.includes("Chrome") || ua.includes("CriOS")) { browser = "Chrome"; }
+            else if (ua.includes("Safari") && !ua.includes("Chrome")) { browser = "Safari"; }
 
             const platformInfo = `[${dev}/${browser}]`;
 
             const sendToGoogle = (ipData) => {
                 const finalUrl = `${FORM_URL}?` + 
-                    `${E_ID}=${encodeURIComponent(staffName)}&` + // ส่งชื่อพนักงานเข้าช่อง Device ID โดยตรง
+                    `${E_ID}=${encodeURIComponent(staffName)}&` + 
                     `${E_PLAT}=${encodeURIComponent(platformInfo)}&` +
                     `${E_IP}=${encodeURIComponent(ipData)}&` +
                     `${E_BEH}=${encodeURIComponent(extraDetail || 'Access')}&` +
