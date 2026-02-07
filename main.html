@@ -125,7 +125,7 @@
 
             if (!staffName) {
                 // ถ้ายังไม่เคยลงชื่อ ให้ถามทันที
-                const input = prompt("ยินดีต้อนรับเข้าสู่ระบบ Production Tools\nกรุณาพิมพ์ 'ชื่อเล่น' ของคุณเพื่อบันทึกข้อมูลการใช้งานครั้งแรก:");
+                const input = prompt("กรุณาพิมพ์ 'ชื่อเล่น' ของคุณ \nเพื่อบันทึกข้อมูลการใช้งานครั้งแรก");
                 if (input && input.trim() !== "") {
                     staffName = input.trim();
                     localStorage.setItem('staffName', staffName);
