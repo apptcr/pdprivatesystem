@@ -24,10 +24,10 @@
         .view-content.active { display: block; }
         iframe { width: 100%; height: 100%; border: none; display: block; overflow: hidden !important; }
 
-        /* UI ลงทะเบียนชื่อ */
+        /* --- UI ส่วนลงทะเบียนชื่อ --- */
         #name-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(44, 62, 80, 0.98);
+            background: rgba(44, 62, 80, 0.95); /* สีน้ำเงินเข้มโปร่งแสง */
             display: flex; align-items: center; justify-content: center;
             z-index: 10000; visibility: hidden; opacity: 0; transition: 0.3s;
         }
@@ -53,6 +53,7 @@
         .name-card button:hover { background: #2980b9; }
         .error-msg { color: #e74c3c; font-size: 0.8rem; margin-bottom: 10px; display: none; }
 
+        /* --- FAB Styles --- */
         .fab-wrapper {
             position: fixed; bottom: 20px; right: 20px;
             display: flex; flex-direction: column-reverse; align-items: center; gap: 10px; z-index: 9999;
@@ -84,7 +85,7 @@
         <div class="name-card">
             <h2>ยินดีต้อนรับ</h2>
             <p>กรุณาพิมพ์ <b>'ชื่อเล่น'</b> ของคุณ <br>เพื่อบันทึกข้อมูลการใช้งานครั้งแรก<br>บนแพลตฟอร์มนี้</p>
-            <div id="error-txt" class="error-msg">ต้องกรอกชื่อก่อนถึงจะเข้าใช้งานได้ค่ะ</div>
+            <div id="error-txt" class="error-msg">กรุณากรอกชื่อก่อนเริ่มงานนะคะ</div>
             <input type="text" id="user-nickname" placeholder="ระบุชื่อเล่นที่นี่..." autocomplete="off">
             <button onclick="saveInitialName()">ตกลง</button>
         </div>
@@ -122,6 +123,7 @@
             fabOptions.classList.toggle('show');
         }
 
+        // ระบบบันทึกชื่อจากหน้า UI ใหม่
         function saveInitialName() {
             const input = document.getElementById('user-nickname');
             const error = document.getElementById('error-txt');
@@ -135,9 +137,7 @@
 
             localStorage.setItem('staffName', name);
             document.getElementById('name-overlay').classList.remove('show');
-            
-            // บังคับส่ง Log แรกทันทีที่ลงทะเบียนสำเร็จ
-            logActivity("First Access & Registered"); 
+            logActivity("Registered Name"); // ส่ง Log ครั้งแรกที่ลงทะเบียน
         }
 
         function switchTab(viewId, hashName) {
@@ -148,11 +148,7 @@
             fixIframeScroll();
             if(fabOptions.classList.contains('show')) toggleFab();
             
-            // --- จุดสำคัญ: เช็คก่อนส่ง Log ---
-            const staffName = localStorage.getItem('staffName');
-            if (staffName) {
-                logActivity(`Switch to: ${hashName}`);
-            }
+            logActivity(`Switch to: ${hashName}`);
         }
 
         function fixIframeScroll() {
@@ -167,39 +163,36 @@
         }
 
         function checkInitialTab() {
-            const staffName = localStorage.getItem('staffName');
-            
-            // ถ้าไม่มีชื่อ ให้เปิดหน้ากากบังไว้
-            if (!staffName) {
+            // เช็คว่าเคยลงชื่อหรือยัง
+            if (!localStorage.getItem('staffName')) {
                 document.getElementById('name-overlay').classList.add('show');
             }
 
             const hash = window.location.hash.replace('#', '');
             const lastTab = localStorage.getItem('lastTab');
             const target = hash || lastTab || 'yield';
-            
-            // แสดงหน้าเว็บตามปกติ แต่ "ไม่เรียก" logActivity ในขั้นตอนนี้
-            document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
-            const targetViewId = target === 'tri' ? 'tri-view' : 'yield-view';
-            document.getElementById(targetViewId).classList.add('active');
-            
-            fixIframeScroll();
+            switchTab(target === 'tri' ? 'tri-view' : 'yield-view', target);
         }
 
         async function logActivity(extraDetail = "") {
-            const staffName = localStorage.getItem('staffName');
-            
-            // --- ประตูสุดท้าย: ถ้าไม่มีชื่อในระบบ ห้ามส่งเด็ดขาด ---
-            if (!staffName || staffName.trim() === "") return; 
-
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
+            
             const E_ID = "entry.1736643048";
             const E_PLAT = "entry.321341751";
             const E_IP = "entry.907938643";
             const E_BEH = "entry.1442360427";
 
+            let staffName = localStorage.getItem('staffName');
+            
+            // ถ้ายังไม่มีชื่อ (เช่นกรณีที่ LogActivity ทำงานก่อน UI ปิด) ให้ใช้ ID สำรองไปก่อน
+            if (!staffName) {
+                staffName = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
+                localStorage.setItem('visitorId', staffName);
+            }
+
             const ua = navigator.userAgent;
             const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
+            
             let browser = "Unknown";
             if (ua.includes("Line/")) { browser = "LINE"; }
             else if (ua.includes("FBAN") || ua.includes("FBAV")) { browser = "Facebook"; }
