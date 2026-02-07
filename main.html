@@ -136,14 +136,11 @@
             localStorage.setItem('staffName', name);
             document.getElementById('name-overlay').classList.remove('show');
             
-            // ส่ง Log เฉพาะตอนที่มั่นใจว่ามีชื่อแล้วเท่านั้น
+            // บังคับส่ง Log แรกทันทีที่ลงทะเบียนสำเร็จ
             logActivity("First Access & Registered"); 
         }
 
         function switchTab(viewId, hashName) {
-            // เช็คก่อนว่ามีชื่อในเครื่องหรือยัง ถ้าไม่มี ห้ามส่ง Log เด็ดขาด
-            const staffName = localStorage.getItem('staffName');
-            
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             history.replaceState(null, null, "#" + hashName);
@@ -151,7 +148,8 @@
             fixIframeScroll();
             if(fabOptions.classList.contains('show')) toggleFab();
             
-            // ส่ง Log เฉพาะเมื่อมีชื่อแล้วเท่านั้น
+            // --- จุดสำคัญ: เช็คก่อนส่ง Log ---
+            const staffName = localStorage.getItem('staffName');
             if (staffName) {
                 logActivity(`Switch to: ${hashName}`);
             }
@@ -171,6 +169,7 @@
         function checkInitialTab() {
             const staffName = localStorage.getItem('staffName');
             
+            // ถ้าไม่มีชื่อ ให้เปิดหน้ากากบังไว้
             if (!staffName) {
                 document.getElementById('name-overlay').classList.add('show');
             }
@@ -179,7 +178,7 @@
             const lastTab = localStorage.getItem('lastTab');
             const target = hash || lastTab || 'yield';
             
-            // เรียกใช้ switchTab แบบไม่ส่ง Log หากยังไม่มีชื่อ
+            // แสดงหน้าเว็บตามปกติ แต่ "ไม่เรียก" logActivity ในขั้นตอนนี้
             document.querySelectorAll('.view-content').forEach(view => view.classList.remove('active'));
             const targetViewId = target === 'tri' ? 'tri-view' : 'yield-view';
             document.getElementById(targetViewId).classList.add('active');
@@ -189,8 +188,9 @@
 
         async function logActivity(extraDetail = "") {
             const staffName = localStorage.getItem('staffName');
-            // กั้นประตูสุดท้าย: ถ้าไม่มีชื่อ ห้ามรันโค้ดส่งข้อมูลไป Google
-            if (!staffName) return; 
+            
+            // --- ประตูสุดท้าย: ถ้าไม่มีชื่อในระบบ ห้ามส่งเด็ดขาด ---
+            if (!staffName || staffName.trim() === "") return; 
 
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
             const E_ID = "entry.1736643048";
@@ -200,7 +200,6 @@
 
             const ua = navigator.userAgent;
             const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
-            
             let browser = "Unknown";
             if (ua.includes("Line/")) { browser = "LINE"; }
             else if (ua.includes("FBAN") || ua.includes("FBAV")) { browser = "Facebook"; }
