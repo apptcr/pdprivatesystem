@@ -171,21 +171,23 @@
             switchTab(target === 'tri' ? 'tri-view' : 'yield-view', target);
         }
 
-        async function logActivity(extraDetail = "") {
-    // 1. ซ่อน URL ด้วยการเข้ารหัส Base64 (ป้องกัน Bot สแกนหา URL Google Form)
-    const b = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTY3c2NDJ1V1MzSzJCMVZRMUpXaFdRUndGSVVEeHFxRGFCd1lvclNScUI4X1lwU2JnL2Zvcm1SZXNwb25zZQ==";
-    const FORM_URL = atob(b);
+async function logActivity(extraDetail = "") {
+    // 1. แยกส่วนประกอบของ URL (ป้องกันคน Copy ลิงก์ไปเปิดตรงๆ)
+    const _p1 = "https://docs.google.com/forms/d/e/";
+    const _p2 = "1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg";
+    const _p3 = "/formResponse";
+    const FORM_URL = _p1 + _p2 + _p3;
 
-    // 2. ซ่อนชื่อ Field ต่างๆ (ป้องกันคนรู้ว่าช่องไหนเก็บอะไร)
+    // 2. ซ่อนชื่อ Field ด้วย Base64 (ป้องกันคนรู้ว่าช่องไหนเก็บอะไร)
     const f = {
-        id: atob("ZW50cnkuMTczNjY0MzA0OA=="), // entry.1736643048
-        pl: atob("ZW50cnkuMzIxMzQxNzUx"),   // entry.321341751
-        ip: atob("ZW50cnkuOTA3OTM4NjQz"),   // entry.907938643
-        bh: atob("ZW50cnkuMTQ0MjM2MDQyNw==")  // entry.1442360427
+        name: atob("ZW50cnkuMTczNjY0MzA0OA=="), // entry.1736643048
+        plat: atob("ZW50cnkuMzIxMzQxNzUx"),   // entry.321341751
+        ip:   atob("ZW50cnkuOTA3OTM4NjQz"),   // entry.907938643
+        beh:  atob("ZW50cnkuMTQ0MjM2MDQyNw==")  // entry.1442360427
     };
 
     const staffName = localStorage.getItem('staffName');
-    // ประตูที่ 1: ถ้าไม่มีชื่อ และไม่มีการลงทะเบียน ห้ามส่ง Log เด็ดขาด
+    // ประตูที่ 1: ถ้าไม่มีชื่อ ห้ามส่ง Log เด็ดขาด
     if (!staffName || staffName.trim() === "") return; 
 
     const ua = navigator.userAgent;
@@ -206,12 +208,12 @@
     const platformInfo = `[${dev}/${browser}]`;
 
     const sendToGoogle = (ipData) => {
-        // ใช้ตัวแปร f.id, f.pl ฯลฯ แทนค่าตรงๆ เพื่อความปลอดภัย
+        // ประกอบ URL แบบแยกส่วน (ลดโอกาส Error จากการถอดรหัสผิด)
         const finalUrl = `${FORM_URL}?` + 
-            `${f.id}=${encodeURIComponent(staffName)}&` + 
-            `${f.pl}=${encodeURIComponent(platformInfo)}&` +
+            `${f.name}=${encodeURIComponent(staffName)}&` + 
+            `${f.plat}=${encodeURIComponent(platformInfo)}&` +
             `${f.ip}=${encodeURIComponent(ipData)}&` +
-            `${f.bh}=${encodeURIComponent(extraDetail || 'Access')}&` +
+            `${f.beh}=${encodeURIComponent(extraDetail || 'Access')}&` +
             `submit=Submit`;
             
         new Image().src = finalUrl;
@@ -227,7 +229,6 @@
         sendToGoogle("Direct Access");
     }
 }
-
         window.addEventListener('load', checkInitialTab);
         window.addEventListener('resize', fixIframeScroll);
     </script>
