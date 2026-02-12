@@ -171,28 +171,26 @@
             switchTab(target === 'tri' ? 'tri-view' : 'yield-view', target);
         }
 
-async function logActivity(extraDetail = "") {
-    // รหัสผ่านการเข้ารหัสมาแล้ว (Base64) เพื่อพรางตาคนป่วน
+        async function logActivity(extraDetail = "") {
+    // 1. ซ่อน URL ด้วยการเข้ารหัส Base64 (ป้องกัน Bot สแกนหา URL Google Form)
     const b = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTY3c2NDJ1V1MzSzJCMVZRMUpXaFdRUndGSVVEeHFxRGFCd1lvclNScUI4X1lwU2JnL2Zvcm1SZXNwb25zZQ==";
-    const e1 = "ZW50cnkuMTczNjY0MzA0OA==";
-    const e2 = "ZW50cnkuMzIxMzQxNzUx";
-    const e3 = "ZW50cnkuOTA3OTM4NjQz";
-    const e4 = "ZW50cnkuMTQ0MjM2MDQyNw==";
+    const FORM_URL = atob(b);
+
+    // 2. ซ่อนชื่อ Field ต่างๆ (ป้องกันคนรู้ว่าช่องไหนเก็บอะไร)
+    const f = {
+        id: atob("ZW50cnkuMTczNjY0MzA0OA=="), // entry.1736643048
+        pl: atob("ZW50cnkuMzIxMzQxNzUx"),   // entry.321341751
+        ip: atob("ZW50cnkuOTA3OTM4NjQz"),   // entry.907938643
+        bh: atob("ZW50cnkuMTQ0MjM2MDQyNw==")  // entry.1442360427
+    };
 
     const staffName = localStorage.getItem('staffName');
+    // ประตูที่ 1: ถ้าไม่มีชื่อ และไม่มีการลงทะเบียน ห้ามส่ง Log เด็ดขาด
     if (!staffName || staffName.trim() === "") return; 
-
-    // แปลงรหัสกลับมาใช้เฉพาะตอนจะส่งข้อมูล (คนดู Source Code จะไม่เห็น URL ตรงๆ)
-    const FORM_URL = atob(b);
-    const E_ID = atob(e1);
-    const E_PLAT = atob(e2);
-    const E_IP = atob(e3);
-    const E_BEH = atob(e4);
 
     const ua = navigator.userAgent;
     const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
     
-    // (ส่วนตรวจสอบ Browser คงเดิม...)
     let browser = "Unknown";
     if (ua.includes("Line/")) { browser = "LINE"; }
     else if (ua.includes("FBAN") || ua.includes("FBAV")) { browser = "Facebook"; }
@@ -208,12 +206,14 @@ async function logActivity(extraDetail = "") {
     const platformInfo = `[${dev}/${browser}]`;
 
     const sendToGoogle = (ipData) => {
+        // ใช้ตัวแปร f.id, f.pl ฯลฯ แทนค่าตรงๆ เพื่อความปลอดภัย
         const finalUrl = `${FORM_URL}?` + 
-            `${E_ID}=${encodeURIComponent(staffName)}&` + 
-            `${E_PLAT}=${encodeURIComponent(platformInfo)}&` +
-            `${E_IP}=${encodeURIComponent(ipData)}&` +
-            `${E_BEH}=${encodeURIComponent(extraDetail || 'Access')}&` +
+            `${f.id}=${encodeURIComponent(staffName)}&` + 
+            `${f.pl}=${encodeURIComponent(platformInfo)}&` +
+            `${f.ip}=${encodeURIComponent(ipData)}&` +
+            `${f.bh}=${encodeURIComponent(extraDetail || 'Access')}&` +
             `submit=Submit`;
+            
         new Image().src = finalUrl;
     };
 
