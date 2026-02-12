@@ -84,7 +84,7 @@
         <div class="name-card">
             <h2>ยินดีต้อนรับ</h2>
             <p>กรุณาพิมพ์ <b>'ชื่อเล่น'</b> ของคุณ <br>เพื่อบันทึกข้อมูลการใช้งานครั้งแรก<br>บนแพลตฟอร์มนี้</p>
-            <div id="error-txt" class="error-msg">กรุณากรอกชื่อก่อนเริ่มงานนะคะ</div>
+            <div id="error-txt" class="error-msg">กรุณากรอกชื่อก่อนเริ่มใช้งาน</div>
             <input type="text" id="user-nickname" placeholder="ระบุชื่อเล่นที่นี่..." autocomplete="off">
             <button onclick="saveInitialName()">ตกลง</button>
         </div>
@@ -172,13 +172,11 @@
         }
 
 async function logActivity(extraDetail = "") {
-    // 1. แยกส่วนประกอบของ URL (ป้องกันคน Copy ลิงก์ไปเปิดตรงๆ)
     const _p1 = "https://docs.google.com/forms/d/e/";
     const _p2 = "1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg";
     const _p3 = "/formResponse";
     const FORM_URL = _p1 + _p2 + _p3;
 
-    // 2. ซ่อนชื่อ Field ด้วย Base64 (ป้องกันคนรู้ว่าช่องไหนเก็บอะไร)
     const f = {
         name: atob("ZW50cnkuMTczNjY0MzA0OA=="), // entry.1736643048
         plat: atob("ZW50cnkuMzIxMzQxNzUx"),   // entry.321341751
@@ -187,7 +185,6 @@ async function logActivity(extraDetail = "") {
     };
 
     const staffName = localStorage.getItem('staffName');
-    // ประตูที่ 1: ถ้าไม่มีชื่อ ห้ามส่ง Log เด็ดขาด
     if (!staffName || staffName.trim() === "") return; 
 
     const ua = navigator.userAgent;
@@ -208,7 +205,6 @@ async function logActivity(extraDetail = "") {
     const platformInfo = `[${dev}/${browser}]`;
 
     const sendToGoogle = (ipData) => {
-        // ประกอบ URL แบบแยกส่วน (ลดโอกาส Error จากการถอดรหัสผิด)
         const finalUrl = `${FORM_URL}?` + 
             `${f.name}=${encodeURIComponent(staffName)}&` + 
             `${f.plat}=${encodeURIComponent(platformInfo)}&` +
