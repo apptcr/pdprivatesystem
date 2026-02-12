@@ -24,10 +24,9 @@
         .view-content.active { display: block; }
         iframe { width: 100%; height: 100%; border: none; display: block; overflow: hidden !important; }
 
-        /* --- UI ส่วนลงทะเบียนชื่อ --- */
         #name-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(44, 62, 80, 0.95); /* สีน้ำเงินเข้มโปร่งแสง */
+            background: rgba(44, 62, 80, 0.95);
             display: flex; align-items: center; justify-content: center;
             z-index: 10000; visibility: hidden; opacity: 0; transition: 0.3s;
         }
@@ -123,7 +122,6 @@
             fabOptions.classList.toggle('show');
         }
 
-        // ระบบบันทึกชื่อจากหน้า UI ใหม่
         function saveInitialName() {
             const input = document.getElementById('user-nickname');
             const error = document.getElementById('error-txt');
@@ -137,7 +135,7 @@
 
             localStorage.setItem('staffName', name);
             document.getElementById('name-overlay').classList.remove('show');
-            logActivity("Registered Name"); // ส่ง Log ครั้งแรกที่ลงทะเบียน
+            logActivity("Registered Name");
         }
 
         function switchTab(viewId, hashName) {
@@ -163,7 +161,6 @@
         }
 
         function checkInitialTab() {
-            // เช็คว่าเคยลงชื่อหรือยัง
             if (!localStorage.getItem('staffName')) {
                 document.getElementById('name-overlay').classList.add('show');
             }
@@ -174,59 +171,62 @@
             switchTab(target === 'tri' ? 'tri-view' : 'yield-view', target);
         }
 
-        async function logActivity(extraDetail = "") {
-            const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScw642uWS3K2B1VQ1JWhWQRwFIUDxqqDaBwYorSIqB8_YpSbg/formResponse";
-            
-            const E_ID = "entry.1736643048";
-            const E_PLAT = "entry.321341751";
-            const E_IP = "entry.907938643";
-            const E_BEH = "entry.1442360427";
+async function logActivity(extraDetail = "") {
+    // รหัสผ่านการเข้ารหัสมาแล้ว (Base64) เพื่อพรางตาคนป่วน
+    const b = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTY3c2NDJ1V1MzSzJCMVZRMUpXaFdRUndGSVVEeHFxRGFCd1lvclNScUI4X1lwU2JnL2Zvcm1SZXNwb25zZQ==";
+    const e1 = "ZW50cnkuMTczNjY0MzA0OA==";
+    const e2 = "ZW50cnkuMzIxMzQxNzUx";
+    const e3 = "ZW50cnkuOTA3OTM4NjQz";
+    const e4 = "ZW50cnkuMTQ0MjM2MDQyNw==";
 
-            let staffName = localStorage.getItem('staffName');
-            
-            // ถ้ายังไม่มีชื่อ (เช่นกรณีที่ LogActivity ทำงานก่อน UI ปิด) ให้ใช้ ID สำรองไปก่อน
-            if (!staffName) {
-                staffName = localStorage.getItem('visitorId') || ('ID-' + Math.random().toString(36).substr(2, 7).toUpperCase());
-                localStorage.setItem('visitorId', staffName);
-            }
+    const staffName = localStorage.getItem('staffName');
+    if (!staffName || staffName.trim() === "") return; 
 
-            const ua = navigator.userAgent;
-            const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
-            
-            let browser = "Unknown";
-            if (ua.includes("Line/")) { browser = "LINE"; }
-            else if (ua.includes("FBAN") || ua.includes("FBAV")) { browser = "Facebook"; }
-            else if (navigator.brave && typeof navigator.brave.isBrave === "function") { browser = "Brave"; }
-            else if (ua.includes("DuckDuckGo/")) { browser = "DuckDuckGo"; }
-            else if (ua.includes("TorBrowser") || ua.includes("Tor/")) { browser = "Tor"; }
-            else if (ua.includes("Edg/")) { browser = "Edge"; }
-            else if (ua.includes("OPR/") || ua.includes("Opera")) { browser = "Opera"; }
-            else if (ua.includes("Firefox/") || ua.includes("FxiOS/")) { browser = "Firefox"; }
-            else if (ua.includes("Chrome") || ua.includes("CriOS")) { browser = "Chrome"; }
-            else if (ua.includes("Safari") && !ua.includes("Chrome")) { browser = "Safari"; }
+    // แปลงรหัสกลับมาใช้เฉพาะตอนจะส่งข้อมูล (คนดู Source Code จะไม่เห็น URL ตรงๆ)
+    const FORM_URL = atob(b);
+    const E_ID = atob(e1);
+    const E_PLAT = atob(e2);
+    const E_IP = atob(e3);
+    const E_BEH = atob(e4);
 
-            const platformInfo = `[${dev}/${browser}]`;
+    const ua = navigator.userAgent;
+    const dev = /Android|iPhone|iPad/i.test(ua) ? "Mobile" : "PC";
+    
+    // (ส่วนตรวจสอบ Browser คงเดิม...)
+    let browser = "Unknown";
+    if (ua.includes("Line/")) { browser = "LINE"; }
+    else if (ua.includes("FBAN") || ua.includes("FBAV")) { browser = "Facebook"; }
+    else if (navigator.brave && typeof navigator.brave.isBrave === "function") { browser = "Brave"; }
+    else if (ua.includes("DuckDuckGo/")) { browser = "DuckDuckGo"; }
+    else if (ua.includes("TorBrowser") || ua.includes("Tor/")) { browser = "Tor"; }
+    else if (ua.includes("Edg/")) { browser = "Edge"; }
+    else if (ua.includes("OPR/") || ua.includes("Opera")) { browser = "Opera"; }
+    else if (ua.includes("Firefox/") || ua.includes("FxiOS/")) { browser = "Firefox"; }
+    else if (ua.includes("Chrome") || ua.includes("CriOS")) { browser = "Chrome"; }
+    else if (ua.includes("Safari") && !ua.includes("Chrome")) { browser = "Safari"; }
 
-            const sendToGoogle = (ipData) => {
-                const finalUrl = `${FORM_URL}?` + 
-                    `${E_ID}=${encodeURIComponent(staffName)}&` + 
-                    `${E_PLAT}=${encodeURIComponent(platformInfo)}&` +
-                    `${E_IP}=${encodeURIComponent(ipData)}&` +
-                    `${E_BEH}=${encodeURIComponent(extraDetail || 'Access')}&` +
-                    `submit=Submit`;
-                new Image().src = finalUrl;
-            };
+    const platformInfo = `[${dev}/${browser}]`;
 
-            try {
-                const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
-                const text = await response.text();
-                const ipLine = text.split('\n').find(line => line.startsWith('ip='));
-                const ipAddress = ipLine ? ipLine.split('=')[1] : "Unknown IP";
-                sendToGoogle(ipAddress);
-            } catch (error) {
-                sendToGoogle("Direct Access");
-            }
-        }
+    const sendToGoogle = (ipData) => {
+        const finalUrl = `${FORM_URL}?` + 
+            `${E_ID}=${encodeURIComponent(staffName)}&` + 
+            `${E_PLAT}=${encodeURIComponent(platformInfo)}&` +
+            `${E_IP}=${encodeURIComponent(ipData)}&` +
+            `${E_BEH}=${encodeURIComponent(extraDetail || 'Access')}&` +
+            `submit=Submit`;
+        new Image().src = finalUrl;
+    };
+
+    try {
+        const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
+        const text = await response.text();
+        const ipLine = text.split('\n').find(line => line.startsWith('ip='));
+        const ipAddress = ipLine ? ipLine.split('=')[1] : "Unknown IP";
+        sendToGoogle(ipAddress);
+    } catch (error) {
+        sendToGoogle("Direct Access");
+    }
+}
 
         window.addEventListener('load', checkInitialTab);
         window.addEventListener('resize', fixIframeScroll);
